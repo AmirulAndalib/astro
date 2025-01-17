@@ -1,7 +1,8 @@
-import { expect } from 'chai';
+import * as assert from 'node:assert/strict';
+import { before, describe, it } from 'node:test';
 import * as cheerio from 'cheerio';
-import { loadFixture } from './test-utils.js';
 import testAdapter from './test-adapter.js';
+import { loadFixture } from './test-utils.js';
 
 describe('Setting inlineStylesheets to never in static output', () => {
 	let fixture;
@@ -14,6 +15,7 @@ describe('Setting inlineStylesheets to never in static output', () => {
 			site: 'https://test.dev/',
 			root: './fixtures/css-inline-stylesheets/',
 			output: 'static',
+			outDir: './dist/static-inline-stylesheets-never',
 			build: {
 				inlineStylesheets: 'never',
 			},
@@ -25,7 +27,7 @@ describe('Setting inlineStylesheets to never in static output', () => {
 		const html = await fixture.readFile('/index.html');
 		const $ = cheerio.load(html);
 
-		expect($('style').toArray()).to.be.empty;
+		assert.equal($('style').toArray().length, 0);
 	});
 
 	describe('Inspect linked stylesheets', () => {
@@ -52,6 +54,7 @@ describe('Setting inlineStylesheets to never in server output', () => {
 			root: './fixtures/css-inline-stylesheets/',
 			output: 'server',
 			adapter: testAdapter(),
+			outDir: './dist/server-inline-stylesheets-never',
 			build: {
 				inlineStylesheets: 'never',
 			},
@@ -66,7 +69,7 @@ describe('Setting inlineStylesheets to never in server output', () => {
 		const html = await response.text();
 		const $ = cheerio.load(html);
 
-		expect($('style').toArray()).to.be.empty;
+		assert.equal($('style').toArray().length, 0);
 	});
 
 	describe('Inspect linked stylesheets', () => {
@@ -91,6 +94,7 @@ describe('Setting inlineStylesheets to auto in static output', () => {
 			site: 'https://test.info/',
 			root: './fixtures/css-inline-stylesheets/',
 			output: 'static',
+			outDir: './dist/static-inline-stylesheets-auto',
 			build: {
 				inlineStylesheets: 'auto',
 			},
@@ -109,8 +113,8 @@ describe('Setting inlineStylesheets to auto in static output', () => {
 
 		// the count of style/link tags depends on our css chunking logic
 		// this test should be updated if it changes
-		expect($('style')).to.have.lengthOf(3);
-		expect($('link[rel=stylesheet]')).to.have.lengthOf(1);
+		assert.equal($('style').length, 3);
+		assert.equal($('link[rel=stylesheet]').length, 1);
 	});
 
 	describe('Inspect linked and inlined stylesheets', () => {
@@ -136,6 +140,7 @@ describe('Setting inlineStylesheets to auto in server output', () => {
 			root: './fixtures/css-inline-stylesheets/',
 			output: 'server',
 			adapter: testAdapter(),
+			outDir: './dist/server-inline-stylesheets-auto',
 			build: {
 				inlineStylesheets: 'auto',
 			},
@@ -157,8 +162,8 @@ describe('Setting inlineStylesheets to auto in server output', () => {
 
 		// the count of style/link tags depends on our css chunking logic
 		// this test should be updated if it changes
-		expect($('style')).to.have.lengthOf(3);
-		expect($('link[rel=stylesheet]')).to.have.lengthOf(1);
+		assert.equal($('style').length, 3);
+		assert.equal($('link[rel=stylesheet]').length, 1);
 	});
 
 	describe('Inspect linked and inlined stylesheets', () => {
@@ -183,6 +188,7 @@ describe('Setting inlineStylesheets to always in static output', () => {
 			site: 'https://test.net/',
 			root: './fixtures/css-inline-stylesheets/',
 			output: 'static',
+			outDir: './dist/static-inline-stylesheets-always',
 			build: {
 				inlineStylesheets: 'always',
 			},
@@ -194,7 +200,7 @@ describe('Setting inlineStylesheets to always in static output', () => {
 		const html = await fixture.readFile('/index.html');
 		const $ = cheerio.load(html);
 
-		expect($('link[rel=stylesheet]').toArray()).to.be.empty;
+		assert.equal($('link[rel=stylesheet]').toArray().length, 0);
 	});
 
 	describe('Inspect inlined stylesheets', () => {
@@ -220,6 +226,7 @@ describe('Setting inlineStylesheets to always in server output', () => {
 			root: './fixtures/css-inline-stylesheets/',
 			output: 'server',
 			adapter: testAdapter(),
+			outDir: './dist/server-inline-stylesheets-always',
 			build: {
 				inlineStylesheets: 'always',
 			},
@@ -234,7 +241,7 @@ describe('Setting inlineStylesheets to always in server output', () => {
 		const html = await response.text();
 		const $ = cheerio.load(html);
 
-		expect($('link[rel=stylesheet]').toArray()).to.be.empty;
+		assert.equal($('link[rel=stylesheet]').toArray().length, 0);
 	});
 
 	describe('Inspect inlined stylesheets', () => {
@@ -277,7 +284,7 @@ async function stylesFromServer(app) {
 			const cssRequest = new Request(`http://example.com${href}`);
 			const cssResponse = await app.render(cssRequest);
 			return await cssResponse.text();
-		})
+		}),
 	);
 	const allLinkedStyles = allLinkedStylesheets.join('');
 
@@ -290,20 +297,20 @@ async function stylesFromServer(app) {
 function commonExpectations(allStyles) {
 	it('Includes all authored css', () => {
 		// authored in imported.css
-		expect(allStyles.value).to.include('.bg-lightcoral');
+		assert.ok(allStyles.value.includes('.bg-lightcoral'));
 
 		// authored in index.astro
-		expect(allStyles.value).to.include('#welcome');
+		assert.ok(allStyles.value.includes('#welcome'));
 
 		// authored in components/Button.astro
-		expect(allStyles.value).to.include('.variant-outline');
+		assert.ok(allStyles.value.includes('.variant-outline'));
 
 		// authored in layouts/Layout.astro
-		expect(allStyles.value).to.include('Menlo');
+		assert.ok(allStyles.value.includes('Menlo'));
 	});
 
 	it('Styles used both in content layout and directly in page are included only once', () => {
 		// authored in components/Button.astro
-		expect(allStyles.value.match(/cubic-bezier/g)).to.have.lengthOf(1);
+		assert.equal(allStyles.value.match(/cubic-bezier/g).length, 1);
 	});
 }

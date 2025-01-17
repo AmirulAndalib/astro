@@ -1,7 +1,9 @@
 import { expect } from '@playwright/test';
 import { prepareTestFactory } from './shared-component-tests.js';
 
-const { test, createTests } = prepareTestFactory({ root: './fixtures/react-component/' });
+const { test, createTests } = prepareTestFactory(import.meta.url, {
+	root: './fixtures/react-component/',
+});
 
 const config = {
 	counterComponentFilePath: './src/components/Counter.jsx',
@@ -46,7 +48,6 @@ test.describe('React client id generation', () => {
 		const hydratedId1 = await components.nth(2).getAttribute('id');
 		const clientOnlyId0 = await components.nth(3).getAttribute('id');
 		const clientOnlyId1 = await components.nth(4).getAttribute('id');
-		console.log('ho ho', staticId, hydratedId0, hydratedId1, clientOnlyId0, clientOnlyId1);
 		expect(staticId).not.toEqual(hydratedId0);
 		expect(hydratedId0).not.toEqual(hydratedId1);
 		expect(hydratedId1).not.toEqual(clientOnlyId0);

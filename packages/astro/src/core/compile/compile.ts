@@ -1,34 +1,39 @@
-import type { TransformResult } from '@astrojs/compiler';
-import type { ResolvedConfig } from 'vite';
-import type { AstroConfig } from '../../@types/astro.js';
-
-import { transform } from '@astrojs/compiler';
 import { fileURLToPath } from 'node:url';
-import { normalizePath } from 'vite';
-import { AggregateError, AstroError, CompilerError } from '../errors/errors.js';
+import type { TransformResult } from '@astrojs/compiler';
+import { transform } from '@astrojs/compiler';
+import type { ResolvedConfig } from 'vite';
+import type { AstroPreferences } from '../../preferences/index.js';
+import type { AstroConfig } from '../../types/public/config.js';
+import type { AstroError } from '../errors/errors.js';
+import { AggregateError, CompilerError } from '../errors/errors.js';
 import { AstroErrorData } from '../errors/index.js';
-import { resolvePath } from '../util.js';
-import { createStylePreprocessor } from './style.js';
+import { normalizePath, resolvePath } from '../viteUtils.js';
+import { type PartialCompileCssResult, createStylePreprocessor } from './style.js';
+import type { CompileCssResult } from './types.js';
 
 export interface CompileProps {
 	astroConfig: AstroConfig;
 	viteConfig: ResolvedConfig;
+	preferences: AstroPreferences;
 	filename: string;
 	source: string;
 }
 
-export interface CompileResult extends TransformResult {
-	cssDeps: Set<string>;
-	source: string;
+export interface CompileResult extends Omit<TransformResult, 'css'> {
+	css: CompileCssResult[];
 }
 
 export async function compile({
 	astroConfig,
 	viteConfig,
+	preferences,
 	filename,
 	source,
 }: CompileProps): Promise<CompileResult> {
-	const cssDeps = new Set<string>();
+	// Because `@astrojs/compiler` can't return the dependencies for each style transformed,
+	// we need to use an external array to track the dependencies whenever preprocessing is called,
+	// and we'll rebuild the final `css` result after transformation.
+	const cssPartialCompileResults: PartialCompileCssResult[] = [];
 	const cssTransformErrors: AstroError[] = [];
 	let transformResult: TransformResult;
 
@@ -42,14 +47,22 @@ export async function compile({
 			normalizedFilename: normalizeFilename(filename, astroConfig.root),
 			sourcemap: 'both',
 			internalURL: 'astro/compiler-runtime',
+			// TODO: this is no longer necessary for `Astro.site`
+			// but it somehow allows working around caching issues in content collections for some tests
 			astroGlobalArgs: JSON.stringify(astroConfig.site),
 			scopedStyleStrategy: astroConfig.scopedStyleStrategy,
 			resultScopedSlot: true,
 			transitionsAnimationURL: 'astro/components/viewtransitions.css',
+			annotateSourceFile:
+				viteConfig.command === 'serve' &&
+				astroConfig.devToolbar &&
+				astroConfig.devToolbar.enabled &&
+				(await preferences.get('devToolbar.enabled')),
+			renderScript: true,
 			preprocessStyle: createStylePreprocessor({
 				filename,
 				viteConfig,
-				cssDeps,
+				cssPartialCompileResults,
 				cssTransformErrors,
 			}),
 			async resolvePath(specifier) {
@@ -73,8 +86,10 @@ export async function compile({
 
 	return {
 		...transformResult,
-		cssDeps,
-		source,
+		css: transformResult.css.map((code, i) => ({
+			...cssPartialCompileResults[i],
+			code,
+		})),
 	};
 }
 

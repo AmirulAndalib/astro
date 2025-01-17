@@ -1,10 +1,9 @@
-import type yargs from 'yargs-parser';
 import _build from '../../core/build/index.js';
 import { printHelp } from '../../core/messages.js';
-import { flagsToAstroInlineConfig } from '../flags.js';
+import { type Flags, flagsToAstroInlineConfig } from '../flags.js';
 
 interface BuildOptions {
-	flags: yargs.Arguments;
+	flags: Flags;
 }
 
 export async function build({ flags }: BuildOptions) {
@@ -14,8 +13,16 @@ export async function build({ flags }: BuildOptions) {
 			usage: '[...flags]',
 			tables: {
 				Flags: [
-					['--drafts', `Include Markdown draft pages in the build.`],
 					['--outDir <directory>', `Specify the output directory for the build.`],
+					['--mode', `Specify the mode of the project. Defaults to "production".`],
+					[
+						'--devOutput',
+						'Output a development-based build similar to code transformed in `astro dev`.',
+					],
+					[
+						'--force',
+						'Clear the content layer and content collection cache, forcing a full rebuild.',
+					],
 					['--help (-h)', 'See all available flags.'],
 				],
 			},
@@ -26,5 +33,5 @@ export async function build({ flags }: BuildOptions) {
 
 	const inlineConfig = flagsToAstroInlineConfig(flags);
 
-	await _build(inlineConfig);
+	await _build(inlineConfig, { devOutput: !!flags.devOutput });
 }

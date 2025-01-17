@@ -1,5 +1,74 @@
 # @astrojs/tailwind
 
+## 5.1.4
+
+### Patch Changes
+
+- [#12799](https://github.com/withastro/astro/pull/12799) [`739dbfb`](https://github.com/withastro/astro/commit/739dbfba4214107cf8fc40c702834dad33eed3b0) Thanks [@ascorbic](https://github.com/ascorbic)! - Upgrades Vite to pin esbuild
+
+## 5.1.3
+
+### Patch Changes
+
+- [#12594](https://github.com/withastro/astro/pull/12594) [`4f2fd0a`](https://github.com/withastro/astro/commit/4f2fd0a0d67a748af8b611b9afc7d4c789f7c8cc) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Fixes compatibility with Astro 5
+
+## 6.0.0-alpha.0
+
+### Patch Changes
+
+- Updated dependencies [[`b6fbdaa`](https://github.com/withastro/astro/commit/b6fbdaa94a9ecec706a99e1938fbf5cd028c72e0), [`89bab1e`](https://github.com/withastro/astro/commit/89bab1e70786123fbe933a9d7a1b80c9334dcc5f), [`d74617c`](https://github.com/withastro/astro/commit/d74617cbd3278feba05909ec83db2d73d57a153e), [`e90f559`](https://github.com/withastro/astro/commit/e90f5593d23043579611452a84b9e18ad2407ef9), [`2df49a6`](https://github.com/withastro/astro/commit/2df49a6fb4f6d92fe45f7429430abe63defeacd6), [`8a53517`](https://github.com/withastro/astro/commit/8a5351737d6a14fc55f1dafad8f3b04079e81af6)]:
+  - astro@5.0.0-alpha.0
+
+## 5.1.2
+
+### Patch Changes
+
+- [#12161](https://github.com/withastro/astro/pull/12161) [`8e500f2`](https://github.com/withastro/astro/commit/8e500f2f9656a98e4a14ef567f9bf072459f62c4) Thanks [@delucis](https://github.com/delucis)! - Adds keywords to `package.json` to improve categorization in the Astro integrations catalog
+
+## 6.0.0-alpha.0
+
+### Patch Changes
+
+- Updated dependencies [[`b6fbdaa`](https://github.com/withastro/astro/commit/b6fbdaa94a9ecec706a99e1938fbf5cd028c72e0), [`89bab1e`](https://github.com/withastro/astro/commit/89bab1e70786123fbe933a9d7a1b80c9334dcc5f), [`d74617c`](https://github.com/withastro/astro/commit/d74617cbd3278feba05909ec83db2d73d57a153e), [`e90f559`](https://github.com/withastro/astro/commit/e90f5593d23043579611452a84b9e18ad2407ef9), [`2df49a6`](https://github.com/withastro/astro/commit/2df49a6fb4f6d92fe45f7429430abe63defeacd6), [`8a53517`](https://github.com/withastro/astro/commit/8a5351737d6a14fc55f1dafad8f3b04079e81af6)]:
+  - astro@5.0.0-alpha.0
+
+## 5.1.1
+
+### Patch Changes
+
+- [#12018](https://github.com/withastro/astro/pull/12018) [`dcd1158`](https://github.com/withastro/astro/commit/dcd115892a23b17309347c13ce4d82af73d204b2) Thanks [@matthewp](https://github.com/matthewp)! - Make @astrojs/tailwind compat with Astro 5
+
+## 5.1.0
+
+### Minor Changes
+
+- [#9529](https://github.com/withastro/astro/pull/9529) [`d252fc61b04c1491f51822f5e23fabd404d84d40`](https://github.com/withastro/astro/commit/d252fc61b04c1491f51822f5e23fabd404d84d40) Thanks [@bluwy](https://github.com/bluwy)! - Adds `nesting` option to enable `tailwindcss/nesting` support
+
+### Patch Changes
+
+- [#9479](https://github.com/withastro/astro/pull/9479) [`1baf0b0d3cbd0564954c2366a7278794fad6726e`](https://github.com/withastro/astro/commit/1baf0b0d3cbd0564954c2366a7278794fad6726e) Thanks [@sarah11918](https://github.com/sarah11918)! - Updates README
+
+## 5.0.4
+
+### Patch Changes
+
+- [#9452](https://github.com/withastro/astro/pull/9452) [`e83b5095f`](https://github.com/withastro/astro/commit/e83b5095f164f48ba40fc715a805fc66a3e39dcf) Thanks [@florian-lefebvre](https://github.com/florian-lefebvre)! - Upgrades vite to latest
+
+## 5.0.3
+
+### Patch Changes
+
+- [#9313](https://github.com/withastro/astro/pull/9313) [`2f110a501`](https://github.com/withastro/astro/commit/2f110a501664d9fa8b03814d3fe818956031cfc4) Thanks [@matthewp](https://github.com/matthewp)! - Upgrade for compatibility with Astro 4
+
+  The Tailwind now supports both Astro 3 and Astro 4.
+
+## 6.0.0-beta.0
+
+### Patch Changes
+
+- Updated dependencies [[`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3), [`6201bbe96`](https://github.com/withastro/astro/commit/6201bbe96c2a083fb201e4a43a9bd88499821a3e), [`cdabf6ef0`](https://github.com/withastro/astro/commit/cdabf6ef02be7220fd2b6bdcef924ceca089381e), [`1c48ed286`](https://github.com/withastro/astro/commit/1c48ed286538ab9e354eca4e4dcd7c6385c96721), [`37697a2c5`](https://github.com/withastro/astro/commit/37697a2c5511572dc29c0a4ea46f90c2f62be8e6), [`bd0c2e9ae`](https://github.com/withastro/astro/commit/bd0c2e9ae3389a9d3085050c1e8134ae98dff299), [`0fe3a7ed5`](https://github.com/withastro/astro/commit/0fe3a7ed5d7bb1a9fce1623e84ba14104b51223c), [`710be505c`](https://github.com/withastro/astro/commit/710be505c9ddf416e77a75343d8cae9c497d72c6), [`153a5abb9`](https://github.com/withastro/astro/commit/153a5abb905042ac68b712514dc9ec387d3e6b17)]:
+  - astro@4.0.0-beta.0
+
 ## 5.0.2
 
 ### Patch Changes

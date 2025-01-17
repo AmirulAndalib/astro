@@ -3,10 +3,12 @@ import path from 'node:path';
 import type { Context } from './context.js';
 
 import { color } from '@astrojs/cli-kit';
-import { error, info, spinner, title } from '../messages.js';
+import { error, info, title } from '../messages.js';
 import { shell } from '../shell.js';
 
-export async function git(ctx: Pick<Context, 'cwd' | 'git' | 'yes' | 'prompt' | 'dryRun'>) {
+export async function git(
+	ctx: Pick<Context, 'cwd' | 'git' | 'yes' | 'prompt' | 'dryRun' | 'tasks'>,
+) {
 	if (fs.existsSync(path.join(ctx.cwd, '.git'))) {
 		await info('Nice!', `Git has already been initialized`);
 		return;
@@ -26,7 +28,8 @@ export async function git(ctx: Pick<Context, 'cwd' | 'git' | 'yes' | 'prompt' | 
 	if (ctx.dryRun) {
 		await info('--dry-run', `Skipping Git initialization`);
 	} else if (_git) {
-		await spinner({
+		ctx.tasks.push({
+			pending: 'Git',
 			start: 'Git initializing...',
 			end: 'Git initialized',
 			while: () =>
@@ -38,7 +41,7 @@ export async function git(ctx: Pick<Context, 'cwd' | 'git' | 'yes' | 'prompt' | 
 	} else {
 		await info(
 			ctx.yes === false ? 'git [skip]' : 'Sounds good!',
-			`You can always run ${color.reset('git init')}${color.dim(' manually.')}`
+			`You can always run ${color.reset('git init')}${color.dim(' manually.')}`,
 		);
 	}
 }
@@ -52,10 +55,10 @@ async function init({ cwd }: { cwd: string }) {
 			[
 				'commit',
 				'-m',
-				'Initial commit from Astro',
+				'"Initial commit from Astro"',
 				'--author="houston[bot] <astrobot-houston@users.noreply.github.com>"',
 			],
-			{ cwd, stdio: 'ignore' }
+			{ cwd, stdio: 'ignore' },
 		);
-	} catch (e) {}
+	} catch {}
 }

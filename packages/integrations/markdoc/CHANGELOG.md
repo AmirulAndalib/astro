@@ -1,5 +1,324 @@
 # @astrojs/markdoc
 
+## 0.12.6
+
+### Patch Changes
+
+- [#12361](https://github.com/withastro/astro/pull/12361) [`3d89e62`](https://github.com/withastro/astro/commit/3d89e6282235a8da45d9ddfe02bcf7ec78056941) Thanks [@LunaticMuch](https://github.com/LunaticMuch)! - Upgrades the `esbuild` version to match `vite`
+
+- [#12967](https://github.com/withastro/astro/pull/12967) [`0ef1613`](https://github.com/withastro/astro/commit/0ef1613ea36439a76965290053ccc3f8afb9f400) Thanks [@bluwy](https://github.com/bluwy)! - Fixes rendering components when the `nodes.document.render` Markdoc config is set to `null`
+
+- Updated dependencies [[`3d89e62`](https://github.com/withastro/astro/commit/3d89e6282235a8da45d9ddfe02bcf7ec78056941)]:
+  - @astrojs/markdown-remark@6.0.2
+
+## 0.12.5
+
+### Patch Changes
+
+- [#12930](https://github.com/withastro/astro/pull/12930) [`a20a4d7`](https://github.com/withastro/astro/commit/a20a4d7b8ffe3ae941b5c510b319ac6f9783aabe) Thanks [@bluwy](https://github.com/bluwy)! - Fixes rendering code blocks within if tags
+
+## 0.12.4
+
+### Patch Changes
+
+- [#12799](https://github.com/withastro/astro/pull/12799) [`739dbfb`](https://github.com/withastro/astro/commit/739dbfba4214107cf8fc40c702834dad33eed3b0) Thanks [@ascorbic](https://github.com/ascorbic)! - Upgrades Vite to pin esbuild
+
+## 0.12.3
+
+### Patch Changes
+
+- [#12694](https://github.com/withastro/astro/pull/12694) [`495f46b`](https://github.com/withastro/astro/commit/495f46bca78665732e51c629d93a68fa392b88a4) Thanks [@ematipico](https://github.com/ematipico)! - Fixes a bug where the experimental feature `experimental.svg` was incorrectly used when generating ESM images
+
+## 0.12.2
+
+### Patch Changes
+
+- Updated dependencies [[`f13417b`](https://github.com/withastro/astro/commit/f13417bfbf73130c224752379e2da33084f89554), [`87231b1`](https://github.com/withastro/astro/commit/87231b1168da66bb593f681206c42fa555dfcabc), [`a71e9b9`](https://github.com/withastro/astro/commit/a71e9b93b317edc0ded49d4d50f1b7841c8cd428)]:
+  - @astrojs/markdown-remark@6.0.1
+
+## 0.12.1
+
+### Patch Changes
+
+- [#12594](https://github.com/withastro/astro/pull/12594) [`4f2fd0a`](https://github.com/withastro/astro/commit/4f2fd0a0d67a748af8b611b9afc7d4c789f7c8cc) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Fixes compatibility with Astro 5
+
+## 0.12.0
+
+### Minor Changes
+
+- [#12539](https://github.com/withastro/astro/pull/12539) [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7) Thanks [@bluwy](https://github.com/bluwy)! - Drops node 21 support
+
+### Patch Changes
+
+- [#11825](https://github.com/withastro/astro/pull/11825) [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce) Thanks [@bluwy](https://github.com/bluwy)! - Uses latest version of `@astrojs/markdown-remark` with updated Shiki APIs
+
+- [#12075](https://github.com/withastro/astro/pull/12075) [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819) Thanks [@bluwy](https://github.com/bluwy)! - Parses frontmatter ourselves
+
+- [#12584](https://github.com/withastro/astro/pull/12584) [`fa07002`](https://github.com/withastro/astro/commit/fa07002352147d45da193f28fd6e02d2d42dc67a) Thanks [@ascorbic](https://github.com/ascorbic)! - Correctly renders boolean HTML attributes
+
+- Updated dependencies [[`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59), [`5608338`](https://github.com/withastro/astro/commit/560833843c6d3ce2b6c6c473ec4ae70e744bf255), [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7), [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce), [`83a2a64`](https://github.com/withastro/astro/commit/83a2a648418ad30f4eb781d1c1b5f2d8a8ac846e), [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59), [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819), [`1dc8f5e`](https://github.com/withastro/astro/commit/1dc8f5eb7c515c89aadc85cfa0a300d4f65e8671)]:
+  - @astrojs/markdown-remark@6.0.0
+  - @astrojs/prism@3.2.0
+  - @astrojs/internal-helpers@0.4.2
+
+## 0.12.0-beta.1
+
+### Minor Changes
+
+- [#12539](https://github.com/withastro/astro/pull/12539) [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7) Thanks [@bluwy](https://github.com/bluwy)! - Drops node 21 support
+
+### Patch Changes
+
+- Updated dependencies [[`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7)]:
+  - @astrojs/prism@3.2.0-beta.0
+  - @astrojs/markdown-remark@6.0.0-beta.3
+
+## 0.11.5-beta.1
+
+### Patch Changes
+
+- [#12075](https://github.com/withastro/astro/pull/12075) [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819) Thanks [@bluwy](https://github.com/bluwy)! - Parses frontmatter ourselves
+
+- Updated dependencies [[`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819)]:
+  - @astrojs/markdown-remark@6.0.0-beta.2
+
+## 0.11.5-beta.0
+
+### Patch Changes
+
+- Updated dependencies [[`5608338`](https://github.com/withastro/astro/commit/560833843c6d3ce2b6c6c473ec4ae70e744bf255)]:
+  - @astrojs/markdown-remark@6.0.0-beta.1
+
+## 1.0.0-alpha.1
+
+### Patch Changes
+
+- [#11825](https://github.com/withastro/astro/pull/11825) [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce) Thanks [@bluwy](https://github.com/bluwy)! - Uses latest version of `@astrojs/markdown-remark` with updated Shiki APIs
+
+- Updated dependencies [[`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59), [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce), [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59)]:
+  - @astrojs/markdown-remark@6.0.0-alpha.1
+
+## 1.0.0-alpha.0
+
+### Patch Changes
+
+- Updated dependencies [[`b6fbdaa`](https://github.com/withastro/astro/commit/b6fbdaa94a9ecec706a99e1938fbf5cd028c72e0), [`89bab1e`](https://github.com/withastro/astro/commit/89bab1e70786123fbe933a9d7a1b80c9334dcc5f), [`d74617c`](https://github.com/withastro/astro/commit/d74617cbd3278feba05909ec83db2d73d57a153e), [`83a2a64`](https://github.com/withastro/astro/commit/83a2a648418ad30f4eb781d1c1b5f2d8a8ac846e), [`e90f559`](https://github.com/withastro/astro/commit/e90f5593d23043579611452a84b9e18ad2407ef9), [`2df49a6`](https://github.com/withastro/astro/commit/2df49a6fb4f6d92fe45f7429430abe63defeacd6), [`8a53517`](https://github.com/withastro/astro/commit/8a5351737d6a14fc55f1dafad8f3b04079e81af6)]:
+  - astro@5.0.0-alpha.0
+  - @astrojs/markdown-remark@6.0.0-alpha.0
+
+## 0.11.5
+
+### Patch Changes
+
+- Updated dependencies [[`710a1a1`](https://github.com/withastro/astro/commit/710a1a11f488ff6ed3da6d3e0723b2322ccfe27b)]:
+  - @astrojs/markdown-remark@5.3.0
+
+## 0.11.4
+
+### Patch Changes
+
+- [#11846](https://github.com/withastro/astro/pull/11846) [`ed7bbd9`](https://github.com/withastro/astro/commit/ed7bbd990f80cacf9c5ec2a70ad7501631b92d3f) Thanks [@HiDeoo](https://github.com/HiDeoo)! - Fixes an issue preventing to use Astro components as Markdoc tags and nodes when configured using the `extends` property.
+
+## 0.11.3
+
+### Patch Changes
+
+- Updated dependencies [[`49b5145`](https://github.com/withastro/astro/commit/49b5145158a603b9bb951bf914a6a9780c218704)]:
+  - @astrojs/markdown-remark@5.2.0
+
+## 0.11.2
+
+### Patch Changes
+
+- [#11450](https://github.com/withastro/astro/pull/11450) [`eb303e1`](https://github.com/withastro/astro/commit/eb303e1ad5dade7787c0d9bbb520c21292cf3950) Thanks [@schpet](https://github.com/schpet)! - Adds support for markdown-it's typographer option
+
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [[`b6afe6a`](https://github.com/withastro/astro/commit/b6afe6a782f68f4a279463a144baaf99cb96b6dc), [`41064ce`](https://github.com/withastro/astro/commit/41064cee78c1cccd428f710a24c483aeb275fd95)]:
+  - @astrojs/markdown-remark@5.1.1
+  - @astrojs/internal-helpers@0.4.1
+
+## 0.11.0
+
+### Minor Changes
+
+- [#10833](https://github.com/withastro/astro/pull/10833) [`8d5f3e8`](https://github.com/withastro/astro/commit/8d5f3e8656027023f9fda51c66b0213ffe16d3a5) Thanks [@renovate](https://github.com/apps/renovate)! - Updates `@markdoc/markdoc` to v0.4
+
+### Patch Changes
+
+- [#10833](https://github.com/withastro/astro/pull/10833) [`8d5f3e8`](https://github.com/withastro/astro/commit/8d5f3e8656027023f9fda51c66b0213ffe16d3a5) Thanks [@renovate](https://github.com/apps/renovate)! - Updates `esbuild` dependency to v0.20. This should not affect projects in most cases.
+
+## 0.10.0
+
+### Minor Changes
+
+- [#10689](https://github.com/withastro/astro/pull/10689) [`683d51a5eecafbbfbfed3910a3f1fbf0b3531b99`](https://github.com/withastro/astro/commit/683d51a5eecafbbfbfed3910a3f1fbf0b3531b99) Thanks [@ematipico](https://github.com/ematipico)! - Deprecate support for versions of Node.js older than `v18.17.1` for Node.js 18, older than `v20.0.3` for Node.js 20, and the complete Node.js v19 release line.
+
+  This change is in line with Astro's [Node.js support policy](https://docs.astro.build/en/upgrade-astro/#support).
+
+### Patch Changes
+
+- Updated dependencies [[`ccafa8d230f65c9302421a0ce0a0adc5824bfd55`](https://github.com/withastro/astro/commit/ccafa8d230f65c9302421a0ce0a0adc5824bfd55), [`683d51a5eecafbbfbfed3910a3f1fbf0b3531b99`](https://github.com/withastro/astro/commit/683d51a5eecafbbfbfed3910a3f1fbf0b3531b99)]:
+  - @astrojs/markdown-remark@5.1.0
+  - @astrojs/prism@3.1.0
+
+## 0.9.5
+
+### Patch Changes
+
+- [#10649](https://github.com/withastro/astro/pull/10649) [`90cfade88c2b9a34d8a5fe711ce329732d690409`](https://github.com/withastro/astro/commit/90cfade88c2b9a34d8a5fe711ce329732d690409) Thanks [@bholmesdev](https://github.com/bholmesdev)! - Add automatic resolution for Markdoc partials. This allows you to render other Markdoc files inside of a given entry. Reference files using the `partial` tag with a `file` attribute for the relative file path:
+
+  ```md
+  <!--src/content/blog/post.mdoc-->
+
+  {% partial file="my-partials/_diagram.mdoc" /%}
+
+  <!--src/content/blog/my-partials/_diagram.mdoc-->
+
+  ## Diagram
+
+  This partial will render inside of `post.mdoc.`
+
+  ![Diagram](./diagram.png)
+  ```
+
+## 0.9.4
+
+### Patch Changes
+
+- [#10632](https://github.com/withastro/astro/pull/10632) [`da2fb875fc58b65a21d37a3d29f570fa20b5219c`](https://github.com/withastro/astro/commit/da2fb875fc58b65a21d37a3d29f570fa20b5219c) Thanks [@bluwy](https://github.com/bluwy)! - Moves `@astrojs/markdown-remark` as a dependency
+
+- Updated dependencies [[`2cf116f80cb5e421ab5cc5eb4a654e7b78c1b8de`](https://github.com/withastro/astro/commit/2cf116f80cb5e421ab5cc5eb4a654e7b78c1b8de), [`374efcdff9625ca43309d89e3b9cfc9174351512`](https://github.com/withastro/astro/commit/374efcdff9625ca43309d89e3b9cfc9174351512)]:
+  - @astrojs/markdown-remark@5.0.0
+
+## 0.9.3
+
+### Patch Changes
+
+- Updated dependencies [[`20463a6c1e1271d8dc3cb0ab3419ee5c72abd218`](https://github.com/withastro/astro/commit/20463a6c1e1271d8dc3cb0ab3419ee5c72abd218)]:
+  - @astrojs/internal-helpers@0.4.0
+
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [[`1ea0a25b94125e4f6f2ac82b42f638e22d7bdffd`](https://github.com/withastro/astro/commit/1ea0a25b94125e4f6f2ac82b42f638e22d7bdffd)]:
+  - @astrojs/internal-helpers@0.3.0
+
+## 0.9.1
+
+### Patch Changes
+
+- [#10278](https://github.com/withastro/astro/pull/10278) [`a548a3a99c2835c19662fc38636f92b2bda26614`](https://github.com/withastro/astro/commit/a548a3a99c2835c19662fc38636f92b2bda26614) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Fixes original images sometimes being kept / deleted when they shouldn't in both MDX and Markdoc
+
+## 0.9.0
+
+### Minor Changes
+
+- [#9958](https://github.com/withastro/astro/pull/9958) [`14ce8a6ebfc9daf951d2dca54737d857c229667c`](https://github.com/withastro/astro/commit/14ce8a6ebfc9daf951d2dca54737d857c229667c) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Adds support for using a custom tag (component) for optimized images
+
+  Starting from this version, when a tag called `image` is used, its `src` attribute will automatically be resolved if it's a local image. Astro will pass the result `ImageMetadata` object to the underlying component as the `src` prop. For non-local images (i.e. images using URLs or absolute paths), Astro will continue to pass the `src` as a string.
+
+  ```ts
+  // markdoc.config.mjs
+  import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+  export default defineMarkdocConfig({
+    tags: {
+      image: {
+        attributes: nodes.image.attributes,
+        render: component('./src/components/MarkdocImage.astro'),
+      },
+    },
+  });
+  ```
+
+  ```astro
+  ---
+  // src/components/MarkdocImage.astro
+  import { Image } from 'astro:assets';
+
+  interface Props {
+    src: ImageMetadata | string;
+    alt: string;
+    width: number;
+    height: number;
+  }
+
+  const { src, alt, width, height } = Astro.props;
+  ---
+
+  <Image {src} {alt} {width} {height} />
+  ```
+
+  ```mdoc
+  {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" %}
+  ```
+
+## 0.8.3
+
+### Patch Changes
+
+- [#9643](https://github.com/withastro/astro/pull/9643) [`e9a72d9a91a3741566866bcaab11172cb0dc7d31`](https://github.com/withastro/astro/commit/e9a72d9a91a3741566866bcaab11172cb0dc7d31) Thanks [@blackmann](https://github.com/blackmann)! - Removes unnecessary `shikiji` dependency
+
+## 0.8.2
+
+### Patch Changes
+
+- [#9479](https://github.com/withastro/astro/pull/9479) [`1baf0b0d3cbd0564954c2366a7278794fad6726e`](https://github.com/withastro/astro/commit/1baf0b0d3cbd0564954c2366a7278794fad6726e) Thanks [@sarah11918](https://github.com/sarah11918)! - Updates README
+
+## 0.8.1
+
+### Patch Changes
+
+- [#9452](https://github.com/withastro/astro/pull/9452) [`e83b5095f`](https://github.com/withastro/astro/commit/e83b5095f164f48ba40fc715a805fc66a3e39dcf) Thanks [@florian-lefebvre](https://github.com/florian-lefebvre)! - Upgrades vite to latest
+
+## 0.8.0
+
+### Minor Changes
+
+- [#9263](https://github.com/withastro/astro/pull/9263) [`3cbd8ea75`](https://github.com/withastro/astro/commit/3cbd8ea7534910e3beae396dcfa93ce87dcdd91f) Thanks [@bluwy](https://github.com/bluwy)! - Removes internal `propagators` handling for Astro 3
+
+## 1.0.0-beta.1
+
+### Minor Changes
+
+- [#9263](https://github.com/withastro/astro/pull/9263) [`3cbd8ea75`](https://github.com/withastro/astro/commit/3cbd8ea7534910e3beae396dcfa93ce87dcdd91f) Thanks [@bluwy](https://github.com/bluwy)! - Removes internal `propagators` handling for Astro 3
+
+## 1.0.0-beta.0
+
+### Patch Changes
+
+- Updated dependencies [[`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3), [`6201bbe96`](https://github.com/withastro/astro/commit/6201bbe96c2a083fb201e4a43a9bd88499821a3e), [`cdabf6ef0`](https://github.com/withastro/astro/commit/cdabf6ef02be7220fd2b6bdcef924ceca089381e), [`1c48ed286`](https://github.com/withastro/astro/commit/1c48ed286538ab9e354eca4e4dcd7c6385c96721), [`37697a2c5`](https://github.com/withastro/astro/commit/37697a2c5511572dc29c0a4ea46f90c2f62be8e6), [`bd0c2e9ae`](https://github.com/withastro/astro/commit/bd0c2e9ae3389a9d3085050c1e8134ae98dff299), [`0fe3a7ed5`](https://github.com/withastro/astro/commit/0fe3a7ed5d7bb1a9fce1623e84ba14104b51223c), [`710be505c`](https://github.com/withastro/astro/commit/710be505c9ddf416e77a75343d8cae9c497d72c6), [`153a5abb9`](https://github.com/withastro/astro/commit/153a5abb905042ac68b712514dc9ec387d3e6b17)]:
+  - astro@4.0.0-beta.0
+
+## 0.7.2
+
+### Patch Changes
+
+- [#9083](https://github.com/withastro/astro/pull/9083) [`4537ecf0d`](https://github.com/withastro/astro/commit/4537ecf0d060f89cb8c000338a7fc5f4197a88c8) Thanks [@bluwy](https://github.com/bluwy)! - Uses new `createShikiHighlighter` API from `@astrojs/markdown-remark` to avoid code duplication
+
+## 0.7.1
+
+### Patch Changes
+
+- [#8759](https://github.com/withastro/astro/pull/8759) [`01c801108`](https://github.com/withastro/astro/commit/01c801108f1f5429436e4fc930018bf96ed31f79) Thanks [@lutaok](https://github.com/lutaok)! - Fix build process on markdoc integration when root folder contains spaces
+
+- [#8762](https://github.com/withastro/astro/pull/8762) [`35cd810f0`](https://github.com/withastro/astro/commit/35cd810f0f988010fbb8e6d7ab205de5d816e2b2) Thanks [@evadecker](https://github.com/evadecker)! - Upgrades Zod to 3.22.4
+
+## 0.7.0
+
+### Minor Changes
+
+- [#8802](https://github.com/withastro/astro/pull/8802) [`73b8d60f8`](https://github.com/withastro/astro/commit/73b8d60f8c3eeae74035202b0ea0d4848e736c7d) Thanks [@AndyClifford](https://github.com/AndyClifford)! - Added ignoreIndentation as a markdoc integration option to enable better readability of source code.
+
+### Patch Changes
+
+- Updated dependencies [[`26b77b8fe`](https://github.com/withastro/astro/commit/26b77b8fef0e03bfc5550aecaa1f56a4fc1cd297)]:
+  - astro@3.3.4
+
 ## 0.6.0
 
 ### Minor Changes

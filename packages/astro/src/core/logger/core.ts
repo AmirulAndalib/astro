@@ -1,11 +1,42 @@
-import { dim } from 'kleur/colors';
-import stringWidth from 'string-width';
+import { blue, bold, dim, red, yellow } from 'kleur/colors';
 
-interface LogWritable<T> {
+export interface LogWritable<T> {
 	write: (chunk: T) => boolean;
 }
 
 export type LoggerLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'; // same as Pino
+
+/**
+ * Defined logger labels. Add more as needed, but keep them high-level & reusable,
+ * rather than specific to a single command, function, use, etc. The label will be
+ * shown in the log message to the user, so it should be relevant.
+ */
+export type LoggerLabel =
+	| 'add'
+	| 'build'
+	| 'check'
+	| 'config'
+	| 'content'
+	| 'crypto'
+	| 'deprecated'
+	| 'markdown'
+	| 'router'
+	| 'types'
+	| 'vite'
+	| 'watch'
+	| 'middleware'
+	| 'preferences'
+	| 'redirects'
+	| 'sync'
+	| 'toolbar'
+	| 'assets'
+	| 'env'
+	| 'update'
+	| 'adapter'
+	| 'islands'
+	// SKIP_FORMAT: A special label that tells the logger not to apply any formatting.
+	// Useful for messages that are already formatted, like the server start message.
+	| 'SKIP_FORMAT';
 
 export interface LogOptions {
 	dest: LogWritable<LogMessage>;
@@ -25,12 +56,14 @@ export const dateTimeFormat = new Intl.DateTimeFormat([], {
 	hour: '2-digit',
 	minute: '2-digit',
 	second: '2-digit',
+	hour12: false,
 });
 
 export interface LogMessage {
 	label: string | null;
 	level: LoggerLevel;
 	message: string;
+	newLine: boolean;
 }
 
 export const levels: Record<LoggerLevel, number> = {
@@ -42,45 +75,47 @@ export const levels: Record<LoggerLevel, number> = {
 };
 
 /** Full logging API */
-export function log(opts: LogOptions, level: LoggerLevel, label: string | null, message: string) {
+export function log(
+	opts: LogOptions,
+	level: LoggerLevel,
+	label: string | null,
+	message: string,
+	newLine = true,
+) {
 	const logLevel = opts.level;
 	const dest = opts.dest;
 	const event: LogMessage = {
 		label,
 		level,
 		message,
+		newLine,
 	};
 
 	// test if this level is enabled or not
-	if (levels[logLevel] > levels[level]) {
+	if (!isLogLevelEnabled(logLevel, level)) {
 		return; // do nothing
 	}
 
 	dest.write(event);
 }
 
+export function isLogLevelEnabled(configuredLogLevel: LoggerLevel, level: LoggerLevel) {
+	return levels[configuredLogLevel] <= levels[level];
+}
+
 /** Emit a user-facing message. Useful for UI and other console messages. */
-export function info(opts: LogOptions, label: string | null, message: string) {
-	return log(opts, 'info', label, message);
+export function info(opts: LogOptions, label: string | null, message: string, newLine = true) {
+	return log(opts, 'info', label, message, newLine);
 }
 
 /** Emit a warning message. Useful for high-priority messages that aren't necessarily errors. */
-export function warn(opts: LogOptions, label: string | null, message: string) {
-	return log(opts, 'warn', label, message);
+export function warn(opts: LogOptions, label: string | null, message: string, newLine = true) {
+	return log(opts, 'warn', label, message, newLine);
 }
 
 /** Emit a error message, Useful when Astro can't recover from some error. */
-export function error(opts: LogOptions, label: string | null, message: string) {
-	return log(opts, 'error', label, message);
-}
-
-type LogFn = typeof info | typeof warn | typeof error;
-
-export function table(opts: LogOptions, columns: number[]) {
-	return function logTable(logFn: LogFn, ...input: Array<any>) {
-		const message = columns.map((len, i) => padStr(input[i].toString(), len)).join(' ');
-		logFn(opts, null, message);
-	};
+export function error(opts: LogOptions, label: string | null, message: string, newLine = true) {
+	return log(opts, 'error', label, message, newLine);
 }
 
 export function debug(...args: any[]) {
@@ -89,34 +124,33 @@ export function debug(...args: any[]) {
 	}
 }
 
-function padStr(str: string, len: number) {
-	const strLen = stringWidth(str);
-	if (strLen > len) {
-		return str.substring(0, len - 3) + '...';
-	}
-	const spaces = Array.from({ length: len - strLen }, () => ' ').join('');
-	return str + spaces;
-}
-
-export let defaultLogLevel: LoggerLevel;
-if (typeof process !== 'undefined') {
-	// This could be a shimmed environment so we don't know that `process` is the full
-	// NodeJS.process. This code treats it as a plain object so TS doesn't let us
-	// get away with incorrect assumptions.
-	let proc: object = process;
-	if ('argv' in proc && Array.isArray(proc.argv)) {
-		if (proc.argv.includes('--verbose')) {
-			defaultLogLevel = 'debug';
-		} else if (proc.argv.includes('--silent')) {
-			defaultLogLevel = 'silent';
-		} else {
-			defaultLogLevel = 'info';
-		}
+/**
+ * Get the prefix for a log message.
+ * This includes the timestamp, log level, and label all properly formatted
+ * with colors. This is shared across different loggers, so it's defined here.
+ */
+export function getEventPrefix({ level, label }: LogMessage) {
+	const timestamp = `${dateTimeFormat.format(new Date())}`;
+	const prefix = [];
+	if (level === 'error' || level === 'warn') {
+		prefix.push(bold(timestamp));
+		prefix.push(`[${level.toUpperCase()}]`);
 	} else {
-		defaultLogLevel = 'info';
+		prefix.push(timestamp);
 	}
-} else {
-	defaultLogLevel = 'info';
+	if (label) {
+		prefix.push(`[${label}]`);
+	}
+	if (level === 'error') {
+		return red(prefix.join(' '));
+	}
+	if (level === 'warn') {
+		return yellow(prefix.join(' '));
+	}
+	if (prefix.length === 1) {
+		return dim(prefix[0]);
+	}
+	return dim(prefix[0]) + ' ' + blue(prefix.splice(1).join(' '));
 }
 
 /** Print out a timer message for debug() */
@@ -133,17 +167,17 @@ export class Logger {
 		this.options = options;
 	}
 
-	info(label: string | null, message: string) {
-		info(this.options, label, message);
+	info(label: LoggerLabel | null, message: string, newLine = true) {
+		info(this.options, label, message, newLine);
 	}
-	warn(label: string | null, message: string) {
-		warn(this.options, label, message);
+	warn(label: LoggerLabel | null, message: string, newLine = true) {
+		warn(this.options, label, message, newLine);
 	}
-	error(label: string | null, message: string) {
-		error(this.options, label, message);
+	error(label: LoggerLabel | null, message: string, newLine = true) {
+		error(this.options, label, message, newLine);
 	}
-	debug(label: string | null, message: string, ...args: any[]) {
-		debug(this.options, label, message, args);
+	debug(label: LoggerLabel, ...messages: any[]) {
+		debug(label, ...messages);
 	}
 
 	level() {
@@ -181,6 +215,6 @@ export class AstroIntegrationLogger {
 		error(this.options, this.label, message);
 	}
 	debug(message: string) {
-		debug(this.options, this.label, message);
+		debug(this.label, message);
 	}
 }

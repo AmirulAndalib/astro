@@ -1,11 +1,10 @@
-import { defineConfig } from 'astro/config';
-import renderer from 'astro/jsx/renderer.js';
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import react from '@astrojs/react';
+import solid from '@astrojs/solid-js';
 import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
-import solid from '@astrojs/solid-js';
+import { defineConfig } from 'astro/config';
 
 
 export default defineConfig({
@@ -22,13 +21,5 @@ export default defineConfig({
 		mdx(),
 		svelte(),
 		vue(),
-		{
-			name: '@astrojs/test-jsx',
-			hooks: {
-				'astro:config:setup': ({ addRenderer }) => {
-					addRenderer(renderer);
-				}
-			}
-		},
 	]
 })

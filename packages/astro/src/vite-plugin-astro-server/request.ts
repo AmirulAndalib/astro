@@ -1,14 +1,10 @@
 import type http from 'node:http';
-import type { ManifestData, SSRManifest } from '../@types/astro.js';
-import { collectErrorMetadata } from '../core/errors/dev/index.js';
-import { createSafeError } from '../core/errors/index.js';
-import * as msg from '../core/messages.js';
-import { collapseDuplicateSlashes, removeTrailingForwardSlash } from '../core/path.js';
-import { eventError, telemetry } from '../events/index.js';
-import { isServerLikeOutput } from '../prerender/utils.js';
+import { removeTrailingForwardSlash } from '../core/path.js';
+import type { ManifestData } from '../types/astro.js';
 import type { DevServerController } from './controller.js';
 import { runWithErrorHandling } from './controller.js';
-import type DevPipeline from './devPipeline.js';
+import { recordServerError } from './error.js';
+import type { DevPipeline } from './pipeline.js';
 import { handle500Response } from './response.js';
 import { handleRoute, matchRoute } from './route.js';
 
@@ -18,7 +14,6 @@ type HandleRequest = {
 	controller: DevServerController;
 	incomingRequest: http.IncomingMessage;
 	incomingResponse: http.ServerResponse;
-	manifest: SSRManifest;
 };
 
 /** The main logic to route dev server requests to pages in Astro. */
@@ -28,34 +23,24 @@ export async function handleRequest({
 	controller,
 	incomingRequest,
 	incomingResponse,
-	manifest,
 }: HandleRequest) {
-	const config = pipeline.getConfig();
-	const moduleLoader = pipeline.getModuleLoader();
-	const origin = `${moduleLoader.isHttps() ? 'https' : 'http'}://${incomingRequest.headers.host}`;
-	const buildingToSSR = isServerLikeOutput(config);
+	const { config, loader } = pipeline;
+	const origin = `${loader.isHttps() ? 'https' : 'http'}://${
+		incomingRequest.headers[':authority'] ?? incomingRequest.headers.host
+	}`;
 
-	const url = new URL(collapseDuplicateSlashes(origin + incomingRequest.url));
+	const url = new URL(origin + incomingRequest.url);
 	let pathname: string;
 	if (config.trailingSlash === 'never' && !incomingRequest.url) {
 		pathname = '';
 	} else {
+		// We already have a middleware that checks if there's an incoming URL that has invalid URI, so it's safe
+		// to not handle the error: packages/astro/src/vite-plugin-astro-server/base.ts
 		pathname = decodeURI(url.pathname);
 	}
 
 	// Add config.base back to url before passing it to SSR
 	url.pathname = removeTrailingForwardSlash(config.base) + url.pathname;
-
-	// HACK! astro:assets uses query params for the injected route in `dev`
-	if (!buildingToSSR && pathname !== '/_image') {
-		// Prevent user from depending on search params when not doing SSR.
-		// NOTE: Create an array copy here because deleting-while-iterating
-		// creates bugs where not all search params are removed.
-		const allSearchParams = Array.from(url.searchParams);
-		for (const [key] of allSearchParams) {
-			url.searchParams.delete(key);
-		}
-	}
 
 	let body: ArrayBuffer | undefined = undefined;
 	if (!(incomingRequest.method === 'GET' || incomingRequest.method === 'HEAD')) {
@@ -80,32 +65,16 @@ export async function handleRequest({
 				url,
 				pathname: resolvedPathname,
 				body,
-				origin,
 				pipeline,
 				manifestData,
 				incomingRequest: incomingRequest,
 				incomingResponse: incomingResponse,
-				manifest,
 			});
 		},
 		onError(_err) {
-			const err = createSafeError(_err);
-
-			// This could be a runtime error from Vite's SSR module, so try to fix it here
-			try {
-				moduleLoader.fixStacktrace(err);
-			} catch {}
-
-			// This is our last line of defense regarding errors where we still might have some information about the request
-			// Our error should already be complete, but let's try to add a bit more through some guesswork
-			const errorWithMetadata = collectErrorMetadata(err, config.root);
-
-			telemetry.record(eventError({ cmd: 'dev', err: errorWithMetadata, isFatal: false }));
-
-			pipeline.logger.error(null, msg.formatErrorMessage(errorWithMetadata));
-			handle500Response(moduleLoader, incomingResponse, errorWithMetadata);
-
-			return err;
+			const { error, errorWithMetadata } = recordServerError(loader, config, pipeline, _err);
+			handle500Response(loader, incomingResponse, errorWithMetadata);
+			return error;
 		},
 	});
 }

@@ -1,21 +1,25 @@
-import { isRemotePath } from '@astrojs/internal-helpers/path';
-import mime from 'mime/lite.js';
-import type { APIRoute } from '../../@types/astro.js';
-import { getConfiguredImageService, isRemoteAllowed } from '../internal.js';
-import { etag } from '../utils/etag.js';
 // @ts-expect-error
 import { imageConfig } from 'astro:assets';
+import { isRemotePath } from '@astrojs/internal-helpers/path';
+import * as mime from 'mrmime';
+import type { APIRoute } from '../../types/public/common.js';
+import { getConfiguredImageService } from '../internal.js';
+import { etag } from '../utils/etag.js';
+import { isRemoteAllowed } from '../utils/remotePattern.js';
 
-async function loadRemoteImage(src: URL) {
+async function loadRemoteImage(src: URL, headers: Headers) {
 	try {
-		const res = await fetch(src);
+		const res = await fetch(src, {
+			// Forward all headers from the original request
+			headers,
+		});
 
 		if (!res.ok) {
 			return undefined;
 		}
 
-		return Buffer.from(await res.arrayBuffer());
-	} catch (err: unknown) {
+		return await res.arrayBuffer();
+	} catch {
 		return undefined;
 	}
 }
@@ -38,34 +42,38 @@ export const GET: APIRoute = async ({ request }) => {
 			throw new Error('Incorrect transform returned by `parseURL`');
 		}
 
-		let inputBuffer: Buffer | undefined = undefined;
+		let inputBuffer: ArrayBuffer | undefined = undefined;
 
-		const sourceUrl = isRemotePath(transform.src)
-			? new URL(transform.src)
-			: new URL(transform.src, url.origin);
+		const isRemoteImage = isRemotePath(transform.src);
+		const sourceUrl = isRemoteImage ? new URL(transform.src) : new URL(transform.src, url.origin);
 
-		if (isRemotePath(transform.src) && isRemoteAllowed(transform.src, imageConfig) === false) {
+		if (isRemoteImage && isRemoteAllowed(transform.src, imageConfig) === false) {
 			return new Response('Forbidden', { status: 403 });
 		}
 
-		inputBuffer = await loadRemoteImage(sourceUrl);
+		inputBuffer = await loadRemoteImage(sourceUrl, isRemoteImage ? new Headers() : request.headers);
 
 		if (!inputBuffer) {
 			return new Response('Not Found', { status: 404 });
 		}
 
-		const { data, format } = await imageService.transform(inputBuffer, transform, imageConfig);
+		const { data, format } = await imageService.transform(
+			new Uint8Array(inputBuffer),
+			transform,
+			imageConfig,
+		);
 
 		return new Response(data, {
 			status: 200,
 			headers: {
-				'Content-Type': mime.getType(format) ?? `image/${format}`,
+				'Content-Type': mime.lookup(format) ?? `image/${format}`,
 				'Cache-Control': 'public, max-age=31536000',
 				ETag: etag(data.toString()),
 				Date: new Date().toUTCString(),
 			},
 		});
 	} catch (err: unknown) {
+		console.error('Could not process image request:', err);
 		return new Response(`Server Error: ${err}`, { status: 500 });
 	}
 };

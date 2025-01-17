@@ -1,33 +1,37 @@
-import type { SSRElement } from '../../../@types/astro.js';
 import type { RenderDestination, RenderDestinationChunk, RenderFunction } from './common.js';
 
 import { clsx } from 'clsx';
+import type { SSRElement } from '../../../types/public/internal.js';
 import { HTMLString, markHTMLString } from '../escape.js';
 
 export const voidElementNames =
 	/^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
 const htmlBooleanAttributes =
-	/^(allowfullscreen|async|autofocus|autoplay|controls|default|defer|disabled|disablepictureinpicture|disableremoteplayback|formnovalidate|hidden|loop|nomodule|novalidate|open|playsinline|readonly|required|reversed|scoped|seamless|itemscope)$/i;
-const htmlEnumAttributes = /^(contenteditable|draggable|spellcheck|value)$/i;
-// Note: SVG is case-sensitive!
-const svgEnumAttributes = /^(autoReverse|externalResourcesRequired|focusable|preserveAlpha)$/i;
+	/^(?:allowfullscreen|async|autofocus|autoplay|checked|controls|default|defer|disabled|disablepictureinpicture|disableremoteplayback|formnovalidate|hidden|inert|loop|nomodule|novalidate|open|playsinline|readonly|required|reversed|scoped|seamless|selected|itemscope)$/i;
+
+const AMPERSAND_REGEX = /&/g;
+const DOUBLE_QUOTE_REGEX = /"/g;
 
 const STATIC_DIRECTIVES = new Set(['set:html', 'set:text']);
 
 // converts (most) arbitrary strings to valid JS identifiers
 const toIdent = (k: string) =>
-	k.trim().replace(/(?:(?!^)\b\w|\s+|[^\w]+)/g, (match, index) => {
-		if (/[^\w]|\s/.test(match)) return '';
+	k.trim().replace(/(?!^)\b\w|\s+|\W+/g, (match, index) => {
+		if (/\W/.test(match)) return '';
 		return index === 0 ? match : match.toUpperCase();
 	});
 
 export const toAttributeString = (value: any, shouldEscape = true) =>
-	shouldEscape ? String(value).replace(/&/g, '&#38;').replace(/"/g, '&#34;') : value;
+	shouldEscape
+		? String(value).replace(AMPERSAND_REGEX, '&#38;').replace(DOUBLE_QUOTE_REGEX, '&#34;')
+		: value;
 
 const kebab = (k: string) =>
 	k.toLowerCase() === k ? k : k.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
-const toStyleString = (obj: Record<string, any>) =>
+
+export const toStyleString = (obj: Record<string, any>) =>
 	Object.entries(obj)
+		.filter(([_, v]) => (typeof v === 'string' && v.trim()) || typeof v === 'number')
 		.map(([k, v]) => {
 			if (k[0] !== '-' && k[1] !== '-') return `${kebab(k)}:${v}`;
 			return `${k}:${v}`;
@@ -42,7 +46,7 @@ export function defineScriptVars(vars: Record<any, any>) {
 		// https://stackoverflow.com/questions/29194024/cant-use-let-keyword-in-safari-javascript
 		output += `const ${toIdent(key)} = ${JSON.stringify(value)?.replace(
 			/<\/script>/g,
-			'\\x3C/script>'
+			'\\x3C/script>',
 		)};\n`;
 	}
 	return markHTMLString(output);
@@ -61,16 +65,8 @@ export function addAttribute(value: any, key: string, shouldEscape = true) {
 		return '';
 	}
 
-	if (value === false) {
-		if (htmlEnumAttributes.test(key) || svgEnumAttributes.test(key)) {
-			return markHTMLString(` ${key}="false"`);
-		}
-		return '';
-	}
-
 	// compiler directives cannot be applied dynamically, log a warning and ignore.
 	if (STATIC_DIRECTIVES.has(key)) {
-		// eslint-disable-next-line no-console
 		console.warn(`[astro] The "${key}" directive cannot be applied dynamically at runtime. It will not be rendered as an attribute.
 
 Make sure to use the static attribute syntax (\`${key}={value}\`) instead of the dynamic spread syntax (\`{...{ "${key}": value }}\`).`);
@@ -90,7 +86,7 @@ Make sure to use the static attribute syntax (\`${key}={value}\`) instead of the
 	if (key === 'style' && !(value instanceof HTMLString)) {
 		if (Array.isArray(value) && value.length === 2) {
 			return markHTMLString(
-				` ${key}="${toAttributeString(`${toStyleString(value[0])};${value[1]}`, shouldEscape)}"`
+				` ${key}="${toAttributeString(`${toStyleString(value[0])};${value[1]}`, shouldEscape)}"`,
 			);
 		}
 		if (typeof value === 'object') {
@@ -103,12 +99,22 @@ Make sure to use the static attribute syntax (\`${key}={value}\`) instead of the
 		return markHTMLString(` class="${toAttributeString(value, shouldEscape)}"`);
 	}
 
-	// Boolean values only need the key
-	if (value === true && (key.startsWith('data-') || htmlBooleanAttributes.test(key))) {
-		return markHTMLString(` ${key}`);
-	} else {
-		return markHTMLString(` ${key}="${toAttributeString(value, shouldEscape)}"`);
+	// Prevents URLs in attributes from being escaped in static builds
+	if (typeof value === 'string' && value.includes('&') && isHttpUrl(value)) {
+		return markHTMLString(` ${key}="${toAttributeString(value, false)}"`);
 	}
+
+	// Boolean values only need the key
+	if (htmlBooleanAttributes.test(key)) {
+		return markHTMLString(value ? ` ${key}` : '');
+	}
+
+	// Other attributes with an empty string value can omit rendering the value
+	if (value === '') {
+		return markHTMLString(` ${key}`);
+	}
+
+	return markHTMLString(` ${key}="${toAttributeString(value, shouldEscape)}"`);
 }
 
 // Adds support for `<Component {...value} />
@@ -123,7 +129,7 @@ export function internalSpreadAttributes(values: Record<any, any>, shouldEscape 
 export function renderElement(
 	name: string,
 	{ props: _props, children = '' }: SSRElement,
-	shouldEscape = true
+	shouldEscape = true,
 ) {
 	// Do not print `hoist`, `lang`, `is:global`
 	const { lang: _, 'data-astro-id': astroId, 'define:vars': defineVars, ...props } = _props;
@@ -138,9 +144,54 @@ export function renderElement(
 		}
 	}
 	if ((children == null || children == '') && voidElementNames.test(name)) {
-		return `<${name}${internalSpreadAttributes(props, shouldEscape)} />`;
+		return `<${name}${internalSpreadAttributes(props, shouldEscape)}>`;
 	}
 	return `<${name}${internalSpreadAttributes(props, shouldEscape)}>${children}</${name}>`;
+}
+
+const noop = () => {};
+
+/**
+ * Renders into a buffer until `renderToFinalDestination` is called (which
+ * flushes the buffer)
+ */
+class BufferedRenderer implements RenderDestination {
+	private chunks: RenderDestinationChunk[] = [];
+	private renderPromise: Promise<void> | void;
+	private destination?: RenderDestination;
+
+	public constructor(bufferRenderFunction: RenderFunction) {
+		this.renderPromise = bufferRenderFunction(this);
+		// Catch here in case it throws before `renderToFinalDestination` is called,
+		// to prevent an unhandled rejection.
+		Promise.resolve(this.renderPromise).catch(noop);
+	}
+
+	public write(chunk: RenderDestinationChunk): void {
+		if (this.destination) {
+			this.destination.write(chunk);
+		} else {
+			this.chunks.push(chunk);
+		}
+	}
+
+	public async renderToFinalDestination(destination: RenderDestination) {
+		// Write the buffered chunks to the real destination
+		for (const chunk of this.chunks) {
+			destination.write(chunk);
+		}
+
+		// NOTE: We don't empty `this.chunks` after it's written as benchmarks show
+		// that it causes poorer performance, likely due to forced memory re-allocation,
+		// instead of letting the garbage collector handle it automatically.
+		// (Unsure how this affects on limited memory machines)
+
+		// Re-assign the real destination so `instance.render` will continue and write to the new destination
+		this.destination = destination;
+
+		// Wait for render to finish entirely
+		await this.renderPromise;
+	}
 }
 
 /**
@@ -165,33 +216,43 @@ export function renderElement(
 export function renderToBufferDestination(bufferRenderFunction: RenderFunction): {
 	renderToFinalDestination: RenderFunction;
 } {
-	// Keep chunks in memory
-	const bufferChunks: RenderDestinationChunk[] = [];
-	const bufferDestination: RenderDestination = {
-		write: (chunk) => bufferChunks.push(chunk),
-	};
+	const renderer = new BufferedRenderer(bufferRenderFunction);
+	return renderer;
+}
 
-	// Don't await for the render to finish to not block streaming
-	const renderPromise = bufferRenderFunction(bufferDestination);
+export const isNode =
+	typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]';
+// @ts-expect-error: Deno is not part of the types.
+export const isDeno = typeof Deno !== 'undefined';
 
-	// Return a closure that writes the buffered chunk
+// We can get rid of this when Promise.withResolvers() is ready
+export type PromiseWithResolvers<T> = {
+	promise: Promise<T>;
+	resolve: (value: T) => void;
+	reject: (reason?: any) => void;
+};
+
+// This is an implementation of Promise.withResolvers(), which we can't yet rely on.
+// We can remove this once the native function is available in Node.js
+export function promiseWithResolvers<T = any>(): PromiseWithResolvers<T> {
+	let resolve: any, reject: any;
+	const promise = new Promise<T>((_resolve, _reject) => {
+		resolve = _resolve;
+		reject = _reject;
+	});
 	return {
-		async renderToFinalDestination(destination) {
-			// Write the buffered chunks to the real destination
-			for (const chunk of bufferChunks) {
-				destination.write(chunk);
-			}
-
-			// NOTE: We don't empty `bufferChunks` after it's written as benchmarks show
-			// that it causes poorer performance, likely due to forced memory re-allocation,
-			// instead of letting the garbage collector handle it automatically.
-			// (Unsure how this affects on limited memory machines)
-
-			// Re-assign the real destination so `instance.render` will continue and write to the new destination
-			bufferDestination.write = (chunk) => destination.write(chunk);
-
-			// Wait for render to finish entirely
-			await renderPromise;
-		},
+		promise,
+		resolve,
+		reject,
 	};
+}
+
+const VALID_PROTOCOLS = ['http:', 'https:'];
+function isHttpUrl(url: string) {
+	try {
+		const parsedUrl = new URL(url);
+		return VALID_PROTOCOLS.includes(parsedUrl.protocol);
+	} catch {
+		return false;
+	}
 }

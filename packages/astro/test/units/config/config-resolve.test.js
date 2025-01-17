@@ -1,5 +1,6 @@
-import { expect } from 'chai';
+import * as assert from 'node:assert/strict';
 import path from 'node:path';
+import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { resolveConfig } from '../../../dist/core/config/index.js';
 
@@ -10,9 +11,9 @@ describe('resolveConfig', () => {
 				configFile: false,
 				root: 'relative/path',
 			},
-			'dev'
+			'dev',
 		);
 		const expectedRoot = path.join(process.cwd(), 'relative/path/');
-		expect(fileURLToPath(astroConfig.root)).to.equal(expectedRoot);
+		assert.equal(fileURLToPath(astroConfig.root), expectedRoot);
 	});
 });

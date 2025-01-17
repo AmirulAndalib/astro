@@ -1,11 +1,9 @@
-import { baseService, type LocalImageService } from './service.js';
+import { type LocalImageService, baseService } from './service.js';
 
-// Empty service used for platforms that neither support Squoosh or Sharp.
+// Empty service used for platforms that don't support Sharp / users who don't want transformations.
 const noopService: LocalImageService = {
-	validateOptions: baseService.validateOptions,
-	getURL: baseService.getURL,
-	parseURL: baseService.parseURL,
-	getHTMLAttributes: baseService.getHTMLAttributes,
+	...baseService,
+	propertiesToHash: ['src'],
 	async transform(inputBuffer, transformOptions) {
 		return {
 			data: inputBuffer,

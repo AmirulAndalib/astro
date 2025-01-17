@@ -1,14 +1,14 @@
+import { Suspense } from 'solid-js';
+import { createStore, reconcile } from 'solid-js/store';
 import { createComponent, hydrate, render } from 'solid-js/web';
+
+const alreadyInitializedElements = new WeakMap<Element, any>();
 
 export default (element: HTMLElement) =>
 	(Component: any, props: any, slotted: any, { client }: { client: string }) => {
-		// Prepare global object expected by Solid's hydration logic
-		if (!(window as any)._$HY) {
-			(window as any)._$HY = { events: [], completed: new WeakSet(), r: {} };
-		}
 		if (!element.hasAttribute('ssr')) return;
-
-		const boostrap = client === 'only' ? render : hydrate;
+		const isHydrate = client !== 'only';
+		const bootstrap = isHydrate ? hydrate : render;
 
 		let slot: HTMLElement | null;
 		let _slots: Record<string, any> = {};
@@ -34,19 +34,44 @@ export default (element: HTMLElement) =>
 
 		const { default: children, ...slots } = _slots;
 		const renderId = element.dataset.solidRenderId;
-
-		const dispose = boostrap(
-			() =>
-				createComponent(Component, {
+		if (alreadyInitializedElements.has(element)) {
+			// update the mounted component
+			alreadyInitializedElements.get(element)!(
+				// reconcile will make sure to apply as little updates as possible, and also remove missing values w/o breaking reactivity
+				reconcile({
 					...props,
 					...slots,
 					children,
 				}),
-			element,
-			{
-				renderId,
-			}
-		);
+			);
+		} else {
+			const [store, setStore] = createStore({
+				...props,
+				...slots,
+				children,
+			});
+			// store the function to update the current mounted component
+			alreadyInitializedElements.set(element, setStore);
 
-		element.addEventListener('astro:unmount', () => dispose(), { once: true });
+			const dispose = bootstrap(
+				() => {
+					const inner = () => createComponent(Component, store);
+
+					if (isHydrate) {
+						return createComponent(Suspense, {
+							get children() {
+								return inner();
+							},
+						});
+					} else {
+						return inner();
+					}
+				},
+				element,
+				{
+					renderId,
+				},
+			);
+			element.addEventListener('astro:unmount', () => dispose(), { once: true });
+		}
 	};

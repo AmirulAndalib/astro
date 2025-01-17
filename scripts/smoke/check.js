@@ -1,14 +1,16 @@
 // @ts-check
 
 import { spawn } from 'node:child_process';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import pLimit from 'p-limit';
-import { tsconfigResolverSync } from 'tsconfig-resolver';
+import { toJson } from 'tsconfck';
+
+const skippedExamples = ['toolbar-app', 'component', 'server-islands'];
 
 function checkExamples() {
 	let examples = readdirSync('./examples', { withFileTypes: true });
-	examples = examples.filter((dirent) => dirent.isDirectory());
+	examples = examples.filter((dirent) => dirent.isDirectory()).filter((dirent) => !skippedExamples.includes(dirent.name));
 
 	console.log(`Running astro check on ${examples.length} examples...`);
 
@@ -21,6 +23,14 @@ function checkExamples() {
 			limit(
 				() =>
 					new Promise((resolve) => {
+						// Sometimes some examples may get deleted, but after a `git pull` the directory still exists.
+						// This can stall the process time as it'll typecheck the entire monorepo, so do a quick exist
+						// check here before typechecking this directory.
+						if (!existsSync(path.join('./examples/', example.name, 'package.json'))) {
+							resolve(0);
+							return;
+						}
+
 						const originalConfig = prepareExample(example.name);
 						let data = '';
 						const child = spawn('node', ['../../packages/astro/astro.js', 'check'], {
@@ -60,25 +70,17 @@ function checkExamples() {
  */
 function prepareExample(examplePath) {
 	const tsconfigPath = path.join('./examples/', examplePath, 'tsconfig.json');
-	const tsconfig = tsconfigResolverSync({ filePath: tsconfigPath, cache: false });
-	let originalConfig = undefined;
+	if (!existsSync(tsconfigPath)) return
+	
+	const originalConfig = readFileSync(tsconfigPath, 'utf-8');
+	const tsconfig = JSON.parse(toJson(originalConfig));
 
-	if (tsconfig.exists) {
-		tsconfig.config.extends = 'astro/tsconfigs/strictest';
-		originalConfig = readFileSync(tsconfigPath).toString();
+	// Swap to strictest config to make sure it also passes
+	tsconfig.extends = 'astro/tsconfigs/strictest';
+	tsconfig.compilerOptions ??= {}
+	tsconfig.compilerOptions.types = tsconfig.compilerOptions.types ?? []; // Speeds up tests
 
-		if (!tsconfig.config.compilerOptions) {
-			tsconfig.config.compilerOptions = {};
-		}
-
-		tsconfig.config.compilerOptions = Object.assign(tsconfig.config.compilerOptions, {
-			types: tsconfig.config.compilerOptions.types ?? [], // Speeds up tests
-		});
-	}
-
-	if (tsconfig.config) {
-		writeFileSync(tsconfigPath, JSON.stringify(tsconfig.config));
-	}
+	writeFileSync(tsconfigPath, JSON.stringify(tsconfig));
 
 	return originalConfig;
 }

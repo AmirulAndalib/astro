@@ -1,5 +1,427 @@
 # @astrojs/mdx
 
+## 4.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`3d89e62`](https://github.com/withastro/astro/commit/3d89e6282235a8da45d9ddfe02bcf7ec78056941)]:
+  - @astrojs/markdown-remark@6.0.2
+
+## 4.0.5
+
+### Patch Changes
+
+- [#12959](https://github.com/withastro/astro/pull/12959) [`3a267f3`](https://github.com/withastro/astro/commit/3a267f33a2a2576c9065c88646ed67f5a7a8ba0b) Thanks [@bluwy](https://github.com/bluwy)! - Reverts https://github.com/withastro/astro/commit/9a3b48c5c3e8f597159454f06c5a0ce8e709bc50 which caused a regression for rendering inline MDX components and MDX files from content collections
+
+## 4.0.4
+
+### Patch Changes
+
+- [#12921](https://github.com/withastro/astro/pull/12921) [`aeb7e1a`](https://github.com/withastro/astro/commit/aeb7e1ac11ebf87847ed2fac89072aa2b4ac2aae) Thanks [@ascorbic](https://github.com/ascorbic)! - Fixes a bug that caused Image component to be imported on MDX pages that did not include images
+
+- [#12913](https://github.com/withastro/astro/pull/12913) [`9a3b48c`](https://github.com/withastro/astro/commit/9a3b48c5c3e8f597159454f06c5a0ce8e709bc50) Thanks [@bluwy](https://github.com/bluwy)! - Makes internal `check()` function a no-op to allow faster component renders and prevent React 19 component warnings
+
+## 4.0.3
+
+### Patch Changes
+
+- [#12799](https://github.com/withastro/astro/pull/12799) [`739dbfb`](https://github.com/withastro/astro/commit/739dbfba4214107cf8fc40c702834dad33eed3b0) Thanks [@ascorbic](https://github.com/ascorbic)! - Upgrades Vite to pin esbuild
+
+## 4.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`f13417b`](https://github.com/withastro/astro/commit/f13417bfbf73130c224752379e2da33084f89554), [`87231b1`](https://github.com/withastro/astro/commit/87231b1168da66bb593f681206c42fa555dfcabc), [`a71e9b9`](https://github.com/withastro/astro/commit/a71e9b93b317edc0ded49d4d50f1b7841c8cd428)]:
+  - @astrojs/markdown-remark@6.0.1
+
+## 4.0.1
+
+### Patch Changes
+
+- [#12594](https://github.com/withastro/astro/pull/12594) [`4f2fd0a`](https://github.com/withastro/astro/commit/4f2fd0a0d67a748af8b611b9afc7d4c789f7c8cc) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Fixes compatibility with Astro 5
+
+## 4.0.0
+
+### Major Changes
+
+- [#12231](https://github.com/withastro/astro/pull/12231) [`90ae100`](https://github.com/withastro/astro/commit/90ae100cf482529828febed591172433309bc12e) Thanks [@bluwy](https://github.com/bluwy)! - Handles the breaking change in Astro where content pages (including `.mdx` pages located within `src/pages/`) no longer respond with `charset=utf-8` in the `Content-Type` header.
+
+  For MDX pages without layouts, `@astrojs/mdx` will automatically add the `<meta charset="utf-8">` tag to the page by default. This reduces the boilerplate needed to write with non-ASCII characters. If your MDX pages have a layout, the layout component should include the `<meta charset="utf-8">` tag.
+
+  If you require `charset=utf-8` to render your page correctly, make sure that your layout components have the `<meta charset="utf-8">` tag added.
+
+- [#12008](https://github.com/withastro/astro/pull/12008) [`5608338`](https://github.com/withastro/astro/commit/560833843c6d3ce2b6c6c473ec4ae70e744bf255) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Welcome to the Astro 5 beta! This release has no changes from the latest alpha of this package, but it does bring us one step closer to the final, stable release.
+
+  Starting from this release, no breaking changes will be introduced unless absolutely necessary.
+
+  To learn how to upgrade, check out the [Astro v5.0 upgrade guide in our beta docs site](https://5-0-0-beta.docs.astro.build/en/guides/upgrade-to/v5/).
+
+### Minor Changes
+
+- [#12539](https://github.com/withastro/astro/pull/12539) [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7) Thanks [@bluwy](https://github.com/bluwy)! - Drops node 21 support
+
+- [#11741](https://github.com/withastro/astro/pull/11741) [`6617491`](https://github.com/withastro/astro/commit/6617491c3bc2bde87f7867d7dec2580781852cfc) Thanks [@bluwy](https://github.com/bluwy)! - Updates adapter server entrypoint to use `@astrojs/mdx/server.js`
+
+  This is an internal change. Handling JSX in your `.mdx` files has been moved from Astro internals and is now the responsibility of this integration. You should not notice a change in your project, and no update to your code is required.
+
+### Patch Changes
+
+- [#12075](https://github.com/withastro/astro/pull/12075) [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819) Thanks [@bluwy](https://github.com/bluwy)! - Parses frontmatter ourselves
+
+- [#11861](https://github.com/withastro/astro/pull/11861) [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59) Thanks [@bluwy](https://github.com/bluwy)! - Updates `@astrojs/markdown-remark` and handle its breaking changes
+
+- [#12533](https://github.com/withastro/astro/pull/12533) [`1b61fdf`](https://github.com/withastro/astro/commit/1b61fdf038d2627c6dad1a7f1426f60a4616ad93) Thanks [@ematipico](https://github.com/ematipico)! - Fixes a case where the MDX renderer couldn't be loaded when used as a direct dependency of an Astro integration.
+
+- Updated dependencies [[`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59), [`5608338`](https://github.com/withastro/astro/commit/560833843c6d3ce2b6c6c473ec4ae70e744bf255), [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce), [`83a2a64`](https://github.com/withastro/astro/commit/83a2a648418ad30f4eb781d1c1b5f2d8a8ac846e), [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59), [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819)]:
+  - @astrojs/markdown-remark@6.0.0
+
+## 4.0.0-beta.5
+
+### Minor Changes
+
+- [#12539](https://github.com/withastro/astro/pull/12539) [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7) Thanks [@bluwy](https://github.com/bluwy)! - Drops node 21 support
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @astrojs/markdown-remark@6.0.0-beta.3
+
+## 4.0.0-beta.4
+
+### Patch Changes
+
+- [#12533](https://github.com/withastro/astro/pull/12533) [`1b61fdf`](https://github.com/withastro/astro/commit/1b61fdf038d2627c6dad1a7f1426f60a4616ad93) Thanks [@ematipico](https://github.com/ematipico)! - Fixes a case where the MDX renderer couldn't be loaded when used as a direct dependency of an Astro integration.
+
+## 4.0.0-beta.3
+
+### Major Changes
+
+- [#12231](https://github.com/withastro/astro/pull/12231) [`90ae100`](https://github.com/withastro/astro/commit/90ae100cf482529828febed591172433309bc12e) Thanks [@bluwy](https://github.com/bluwy)! - Handles the breaking change in Astro where content pages (including `.mdx` pages located within `src/pages/`) no longer respond with `charset=utf-8` in the `Content-Type` header.
+
+  For MDX pages without layouts, `@astrojs/mdx` will automatically add the `<meta charset="utf-8">` tag to the page by default. This reduces the boilerplate needed to write with non-ASCII characters. If your MDX pages have a layout, the layout component should include the `<meta charset="utf-8">` tag.
+
+  If you require `charset=utf-8` to render your page correctly, make sure that your layout components have the `<meta charset="utf-8">` tag added.
+
+## 4.0.0-alpha.2
+
+### Patch Changes
+
+- [#11861](https://github.com/withastro/astro/pull/11861) [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59) Thanks [@bluwy](https://github.com/bluwy)! - Updates `@astrojs/markdown-remark` and handle its breaking changes
+
+- Updated dependencies [[`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59), [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce), [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59)]:
+  - @astrojs/markdown-remark@6.0.0-alpha.1
+
+## 4.0.0-alpha.1
+
+### Minor Changes
+
+- [#11741](https://github.com/withastro/astro/pull/11741) [`6617491`](https://github.com/withastro/astro/commit/6617491c3bc2bde87f7867d7dec2580781852cfc) Thanks [@bluwy](https://github.com/bluwy)! - Updates adapter server entrypoint to use `@astrojs/mdx/server.js`
+
+  This is an internal change. Handling JSX in your `.mdx` files has been moved from Astro internals and is now the responsibility of this integration. You should not notice a change in your project, and no update to your code is required.
+
+## 4.0.0-alpha.0
+
+- Updated dependencies [[`b6fbdaa`](https://github.com/withastro/astro/commit/b6fbdaa94a9ecec706a99e1938fbf5cd028c72e0), [`89bab1e`](https://github.com/withastro/astro/commit/89bab1e70786123fbe933a9d7a1b80c9334dcc5f), [`d74617c`](https://github.com/withastro/astro/commit/d74617cbd3278feba05909ec83db2d73d57a153e), [`83a2a64`](https://github.com/withastro/astro/commit/83a2a648418ad30f4eb781d1c1b5f2d8a8ac846e), [`e90f559`](https://github.com/withastro/astro/commit/e90f5593d23043579611452a84b9e18ad2407ef9), [`2df49a6`](https://github.com/withastro/astro/commit/2df49a6fb4f6d92fe45f7429430abe63defeacd6), [`8a53517`](https://github.com/withastro/astro/commit/8a5351737d6a14fc55f1dafad8f3b04079e81af6)]:
+  - astro@5.0.0-alpha.0
+  - @astrojs/markdown-remark@6.0.0-alpha.0
+
+## 3.1.9
+
+### Patch Changes
+
+- [#12245](https://github.com/withastro/astro/pull/12245) [`1d4f6a4`](https://github.com/withastro/astro/commit/1d4f6a4989bc1cfd7109b1bff41503f115660e02) Thanks [@bmenant](https://github.com/bmenant)! - Add `components` property to MDXInstance type definition (RenderResult and module import)
+
+## 3.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`710a1a1`](https://github.com/withastro/astro/commit/710a1a11f488ff6ed3da6d3e0723b2322ccfe27b)]:
+  - @astrojs/markdown-remark@5.3.0
+
+## 3.1.7
+
+### Patch Changes
+
+- [#12026](https://github.com/withastro/astro/pull/12026) [`40e7a1b`](https://github.com/withastro/astro/commit/40e7a1b05d9e5ea3fcda176c9663bbcff86edb63) Thanks [@bluwy](https://github.com/bluwy)! - Initializes the MDX processor only when there's `.mdx` files
+
+## 3.1.6
+
+### Patch Changes
+
+- [#11975](https://github.com/withastro/astro/pull/11975) [`c9ae7b1`](https://github.com/withastro/astro/commit/c9ae7b1b89e050900bbc111f29e8c5d95c26bf36) Thanks [@bluwy](https://github.com/bluwy)! - Handles nested root hast node when optimizing MDX
+
+## 3.1.5
+
+### Patch Changes
+
+- [#11818](https://github.com/withastro/astro/pull/11818) [`88ef1d0`](https://github.com/withastro/astro/commit/88ef1d0e774e8ab8798b9912da1b069f97736623) Thanks [@bluwy](https://github.com/bluwy)! - Fixes CSS in the layout component to be ordered first before any other components in the MDX file
+
+## 3.1.4
+
+### Patch Changes
+
+- [#11717](https://github.com/withastro/astro/pull/11717) [`423614e`](https://github.com/withastro/astro/commit/423614ebb6ddb76cc8d11f3e3b6ae111a4a82662) Thanks [@bluwy](https://github.com/bluwy)! - Fixes stack trace location when failed to parse an MDX file with frontmatter
+
+## 3.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`49b5145`](https://github.com/withastro/astro/commit/49b5145158a603b9bb951bf914a6a9780c218704)]:
+  - @astrojs/markdown-remark@5.2.0
+
+## 3.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`b6afe6a`](https://github.com/withastro/astro/commit/b6afe6a782f68f4a279463a144baaf99cb96b6dc)]:
+  - @astrojs/markdown-remark@5.1.1
+
+## 3.1.1
+
+### Patch Changes
+
+- [#11263](https://github.com/withastro/astro/pull/11263) [`7d59750`](https://github.com/withastro/astro/commit/7d597506615fa5a34327304e8321be7b9c4b799d) Thanks [@wackbyte](https://github.com/wackbyte)! - Refactor to use Astro's integration logger for logging
+
+## 3.1.0
+
+### Minor Changes
+
+- [#11144](https://github.com/withastro/astro/pull/11144) [`803dd80`](https://github.com/withastro/astro/commit/803dd8061df02138b4928442bcb76e77dcf6f5e7) Thanks [@ematipico](https://github.com/ematipico)! - The integration now exposes a function called `getContainerRenderer`, that can be used inside the Container APIs to load the relative renderer.
+
+  ```js
+  import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+  import ReactWrapper from '../src/components/ReactWrapper.astro';
+  import { loadRenderers } from 'astro:container';
+  import { getContainerRenderer } from '@astrojs/react';
+
+  test('ReactWrapper with react renderer', async () => {
+    const renderers = await loadRenderers([getContainerRenderer()]);
+    const container = await AstroContainer.create({
+      renderers,
+    });
+    const result = await container.renderToString(ReactWrapper);
+
+    expect(result).toContain('Counter');
+    expect(result).toContain('Count: <!-- -->5');
+  });
+  ```
+
+## 3.0.1
+
+### Patch Changes
+
+- [#10813](https://github.com/withastro/astro/pull/10813) [`3cc3e2c`](https://github.com/withastro/astro/commit/3cc3e2ccba062749a6bd8469bc88ff797bea0abc) Thanks [@Xetera](https://github.com/Xetera)! - Omitting compiler-internal symbol from user components to fix breaking error messages
+
+## 3.0.0
+
+### Major Changes
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Refactors the MDX transformation to rely only on the unified pipeline. Babel and esbuild transformations are removed, which should result in faster build times. The refactor requires using Astro v4.8.0 but no other changes are necessary.
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Allows integrations after the MDX integration to update `markdown.remarkPlugins` and `markdown.rehypePlugins`, and have the plugins work in MDX too.
+
+  If your integration relies on Astro's previous behavior that prevents integrations from adding remark/rehype plugins for MDX, you will now need to configure `@astrojs/mdx` with `extendMarkdownConfig: false` and explicitly specify any `remarkPlugins` and `rehypePlugins` options instead.
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Renames the `optimize.customComponentNames` option to `optimize.ignoreElementNames` to better reflect its usecase. Its behaviour is not changed and should continue to work as before.
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Replaces the internal `remark-images-to-component` plugin with `rehype-images-to-component` to let users use additional rehype plugins for images
+
+### Patch Changes
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Simplifies plain MDX components as hast element nodes to further improve HTML string inlining for the `optimize` option
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Allows Vite plugins to transform `.mdx` files before the MDX plugin transforms it
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Updates the `optimize` option to group static sibling nodes as a `<Fragment />`. This reduces the number of AST nodes and simplifies runtime rendering of MDX pages.
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Tags the MDX component export for quicker component checks while rendering
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Fixes `export const components` keys detection for the `optimize` option
+
+- [#10935](https://github.com/withastro/astro/pull/10935) [`ddd8e49`](https://github.com/withastro/astro/commit/ddd8e49d1a179bec82310fb471f822a1567a6610) Thanks [@bluwy](https://github.com/bluwy)! - Improves `optimize` handling for MDX components with attributes and inline MDX components
+
+## 2.3.1
+
+### Patch Changes
+
+- [#10754](https://github.com/withastro/astro/pull/10754) [`3e7a12c8532411e580fcfdb8445cad8fc8499291`](https://github.com/withastro/astro/commit/3e7a12c8532411e580fcfdb8445cad8fc8499291) Thanks [@rishi-raj-jain](https://github.com/rishi-raj-jain)! - Fixes an issue where images in MDX required a relative specifier (e.g. `./`)
+
+  Now, you can use the standard `![](img.png)` syntax in MDX files for images colocated in the same folder: no relative specifier required!
+
+  There is no need to update your project; your existing images will still continue to work. However, you may wish to remove any relative specifiers from these MDX images as they are no longer necessary:
+
+  ```diff
+  - ![A cute dog](./dog.jpg)
+  + ![A cute dog](dog.jpg)
+  <!-- This dog lives in the same folder as my article! -->
+  ```
+
+- [#10770](https://github.com/withastro/astro/pull/10770) [`88ee63a3ba4488c60348cb821034e6d4a057efd0`](https://github.com/withastro/astro/commit/88ee63a3ba4488c60348cb821034e6d4a057efd0) Thanks [@bluwy](https://github.com/bluwy)! - Removes internal MDX processor on `buildEnd` to free up memory
+
+## 2.3.0
+
+### Minor Changes
+
+- [#10689](https://github.com/withastro/astro/pull/10689) [`683d51a5eecafbbfbfed3910a3f1fbf0b3531b99`](https://github.com/withastro/astro/commit/683d51a5eecafbbfbfed3910a3f1fbf0b3531b99) Thanks [@ematipico](https://github.com/ematipico)! - Deprecate support for versions of Node.js older than `v18.17.1` for Node.js 18, older than `v20.0.3` for Node.js 20, and the complete Node.js v19 release line.
+
+  This change is in line with Astro's [Node.js support policy](https://docs.astro.build/en/upgrade-astro/#support).
+
+### Patch Changes
+
+- Updated dependencies [[`ccafa8d230f65c9302421a0ce0a0adc5824bfd55`](https://github.com/withastro/astro/commit/ccafa8d230f65c9302421a0ce0a0adc5824bfd55)]:
+  - @astrojs/markdown-remark@5.1.0
+
+## 2.2.4
+
+### Patch Changes
+
+- [#10673](https://github.com/withastro/astro/pull/10673) [`db7f9c87035a0de780536d95cdd9facff00c3c08`](https://github.com/withastro/astro/commit/db7f9c87035a0de780536d95cdd9facff00c3c08) Thanks [@bluwy](https://github.com/bluwy)! - Removes unnecessary internal `recmaInjectImportMetaEnv` plugin
+
+## 2.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`2cf116f80cb5e421ab5cc5eb4a654e7b78c1b8de`](https://github.com/withastro/astro/commit/2cf116f80cb5e421ab5cc5eb4a654e7b78c1b8de), [`374efcdff9625ca43309d89e3b9cfc9174351512`](https://github.com/withastro/astro/commit/374efcdff9625ca43309d89e3b9cfc9174351512)]:
+  - @astrojs/markdown-remark@5.0.0
+
+## 2.2.2
+
+### Patch Changes
+
+- Updated dependencies [[`c585528f446ccca3d4c643f4af5d550b93c18902`](https://github.com/withastro/astro/commit/c585528f446ccca3d4c643f4af5d550b93c18902)]:
+  - @astrojs/markdown-remark@4.3.2
+
+## 2.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`19e42c368184013fc30d1e46753b9e9383bb2bdf`](https://github.com/withastro/astro/commit/19e42c368184013fc30d1e46753b9e9383bb2bdf)]:
+  - @astrojs/markdown-remark@4.3.1
+
+## 2.2.0
+
+### Minor Changes
+
+- [#10104](https://github.com/withastro/astro/pull/10104) [`a31bbd7ff8f3ec62ee507f72d1d25140b82ffc18`](https://github.com/withastro/astro/commit/a31bbd7ff8f3ec62ee507f72d1d25140b82ffc18) Thanks [@remcohaszing](https://github.com/remcohaszing)! - Changes Astro's internal syntax highlighting to use rehype plugins instead of remark plugins. This provides better interoperability with other [rehype plugins](https://github.com/rehypejs/rehype/blob/main/doc/plugins.md#list-of-plugins) that deal with code blocks, in particular with third party syntax highlighting plugins and [`rehype-mermaid`](https://github.com/remcohaszing/rehype-mermaid).
+
+  This may be a breaking change if you are currently using:
+
+  - a remark plugin that relies on nodes of type `html`
+  - a rehype plugin that depends on nodes of type `raw`.
+
+  Please review your rendered code samples carefully, and if necessary, consider using a rehype plugin that deals with the generated `element` nodes instead. You can transform the AST of raw HTML strings, or alternatively use [`hast-util-to-html`](https://github.com/syntax-tree/hast-util-to-html) to get a string from a `raw` node.
+
+### Patch Changes
+
+- Updated dependencies [[`c081adf998d30419fed97d8fccc11340cdc512e0`](https://github.com/withastro/astro/commit/c081adf998d30419fed97d8fccc11340cdc512e0), [`5a9528741fa98d017b269c7e4f013058028bdc5d`](https://github.com/withastro/astro/commit/5a9528741fa98d017b269c7e4f013058028bdc5d), [`a31bbd7ff8f3ec62ee507f72d1d25140b82ffc18`](https://github.com/withastro/astro/commit/a31bbd7ff8f3ec62ee507f72d1d25140b82ffc18)]:
+  - @astrojs/markdown-remark@4.3.0
+
+## 2.1.1
+
+### Patch Changes
+
+- Updated dependencies [[`44c957f893c6bf5f5b7c78301de7b21c5975584d`](https://github.com/withastro/astro/commit/44c957f893c6bf5f5b7c78301de7b21c5975584d)]:
+  - @astrojs/markdown-remark@4.2.1
+
+## 2.1.0
+
+### Minor Changes
+
+- [#9753](https://github.com/withastro/astro/pull/9753) [`df37366556d46f7abdf82b09e33b08bd94e631b3`](https://github.com/withastro/astro/commit/df37366556d46f7abdf82b09e33b08bd94e631b3) Thanks [@OliverSpeir](https://github.com/OliverSpeir)! - Allows remark plugins to pass options specifying how images in .mdx files will be optimized
+
+## 2.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`53c69dcc82cdf4000aff13a6c11fffe19096cf45`](https://github.com/withastro/astro/commit/53c69dcc82cdf4000aff13a6c11fffe19096cf45), [`2f81cffa9da9db0e2802d303f94feaee8d2f54ec`](https://github.com/withastro/astro/commit/2f81cffa9da9db0e2802d303f94feaee8d2f54ec), [`a505190933365268d48139a5f197a3cfb5570870`](https://github.com/withastro/astro/commit/a505190933365268d48139a5f197a3cfb5570870)]:
+  - @astrojs/markdown-remark@4.2.0
+
+## 2.0.5
+
+### Patch Changes
+
+- [#9706](https://github.com/withastro/astro/pull/9706) [`1539e04a8e5865027b3a8718c6f142885e7c8d88`](https://github.com/withastro/astro/commit/1539e04a8e5865027b3a8718c6f142885e7c8d88) Thanks [@bluwy](https://github.com/bluwy)! - Removes redundant HMR handling code
+
+- Updated dependencies [[`165cfc154be477337037185c32b308616d1ed6fa`](https://github.com/withastro/astro/commit/165cfc154be477337037185c32b308616d1ed6fa), [`e9a72d9a91a3741566866bcaab11172cb0dc7d31`](https://github.com/withastro/astro/commit/e9a72d9a91a3741566866bcaab11172cb0dc7d31)]:
+  - @astrojs/markdown-remark@4.1.0
+
+## 2.0.4
+
+### Patch Changes
+
+- [#9652](https://github.com/withastro/astro/pull/9652) [`e72efd6a9a1e2a70488fd225529617ffd8418534`](https://github.com/withastro/astro/commit/e72efd6a9a1e2a70488fd225529617ffd8418534) Thanks [@bluwy](https://github.com/bluwy)! - Removes environment variables workaround that broke project builds with sourcemaps
+
+## 2.0.3
+
+### Patch Changes
+
+- [#9479](https://github.com/withastro/astro/pull/9479) [`1baf0b0d3cbd0564954c2366a7278794fad6726e`](https://github.com/withastro/astro/commit/1baf0b0d3cbd0564954c2366a7278794fad6726e) Thanks [@sarah11918](https://github.com/sarah11918)! - Updates README
+
+## 2.0.2
+
+### Patch Changes
+
+- [#9452](https://github.com/withastro/astro/pull/9452) [`e83b5095f`](https://github.com/withastro/astro/commit/e83b5095f164f48ba40fc715a805fc66a3e39dcf) Thanks [@florian-lefebvre](https://github.com/florian-lefebvre)! - Upgrades vite to latest
+
+## 2.0.1
+
+### Patch Changes
+
+- [#9366](https://github.com/withastro/astro/pull/9366) [`1b4e91898`](https://github.com/withastro/astro/commit/1b4e91898116f75b02b66ec402385cf44e559118) Thanks [@lilnasy](https://github.com/lilnasy)! - Updates NPM package to refer to the stable Astro version instead of a beta.
+
+- Updated dependencies [[`270c6cc27`](https://github.com/withastro/astro/commit/270c6cc27f20995883fcdabbff9b56d7f041f9e4)]:
+  - @astrojs/markdown-remark@4.0.1
+
+## 2.0.0
+
+### Major Changes
+
+- [#9138](https://github.com/withastro/astro/pull/9138) [`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3) Thanks [@bluwy](https://github.com/bluwy)! - Updates the unified, remark, and rehype dependencies to latest. Make sure to update your custom remark and rehype plugins as well to be compatible with the latest versions.
+
+  **Potentially breaking change:** The default value of `markdown.remarkRehype.footnoteBackLabel` is changed from `"Back to content"` to `"Back to reference 1"`. See the `mdast-util-to-hast` [commit](https://github.com/syntax-tree/mdast-util-to-hast/commit/56c88e45690be138fad9f0bf367b939d09816863) for more information.
+
+### Patch Changes
+
+- Updated dependencies [[`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3), [`addb57c8e`](https://github.com/withastro/astro/commit/addb57c8e80b7b67ec61224666f3a1db5c44410c), [`c7953645e`](https://github.com/withastro/astro/commit/c7953645eeaaf9e87c6db4494b0023d2c1878ff0)]:
+  - @astrojs/markdown-remark@4.0.0
+
+## 2.0.0-beta.0
+
+### Major Changes
+
+- [#9138](https://github.com/withastro/astro/pull/9138) [`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3) Thanks [@bluwy](https://github.com/bluwy)! - Updates the unified, remark, and rehype dependencies to latest. Make sure to update your custom remark and rehype plugins as well to be compatible with the latest versions.
+
+  **Potentially breaking change:** The default value of `markdown.remarkRehype.footnoteBackLabel` is changed from `"Back to content"` to `"Back to reference 1"`. See the `mdast-util-to-hast` [commit](https://github.com/syntax-tree/mdast-util-to-hast/commit/56c88e45690be138fad9f0bf367b939d09816863) for more information.
+
+### Patch Changes
+
+- Updated dependencies [[`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3), [`6201bbe96`](https://github.com/withastro/astro/commit/6201bbe96c2a083fb201e4a43a9bd88499821a3e), [`cdabf6ef0`](https://github.com/withastro/astro/commit/cdabf6ef02be7220fd2b6bdcef924ceca089381e), [`addb57c8e`](https://github.com/withastro/astro/commit/addb57c8e80b7b67ec61224666f3a1db5c44410c), [`1c48ed286`](https://github.com/withastro/astro/commit/1c48ed286538ab9e354eca4e4dcd7c6385c96721), [`37697a2c5`](https://github.com/withastro/astro/commit/37697a2c5511572dc29c0a4ea46f90c2f62be8e6), [`bd0c2e9ae`](https://github.com/withastro/astro/commit/bd0c2e9ae3389a9d3085050c1e8134ae98dff299), [`c7953645e`](https://github.com/withastro/astro/commit/c7953645eeaaf9e87c6db4494b0023d2c1878ff0), [`0fe3a7ed5`](https://github.com/withastro/astro/commit/0fe3a7ed5d7bb1a9fce1623e84ba14104b51223c), [`710be505c`](https://github.com/withastro/astro/commit/710be505c9ddf416e77a75343d8cae9c497d72c6), [`153a5abb9`](https://github.com/withastro/astro/commit/153a5abb905042ac68b712514dc9ec387d3e6b17)]:
+  - @astrojs/markdown-remark@4.0.0-beta.0
+  - astro@4.0.0-beta.0
+
+## 1.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`4537ecf0d`](https://github.com/withastro/astro/commit/4537ecf0d060f89cb8c000338a7fc5f4197a88c8)]:
+  - @astrojs/markdown-remark@3.5.0
+
+## 1.1.4
+
+### Patch Changes
+
+- Updated dependencies [[`c5010aad3`](https://github.com/withastro/astro/commit/c5010aad3475669648dc939e00f88bbb52489d0d)]:
+  - @astrojs/markdown-remark@3.4.0
+
+## 1.1.3
+
+### Patch Changes
+
+- [#8897](https://github.com/withastro/astro/pull/8897) [`5a3d46da1`](https://github.com/withastro/astro/commit/5a3d46da1e80f62a29eaf464eeb87c626cc5593f) Thanks [@remcohaszing](https://github.com/remcohaszing)! - Update the README to suggest that users install the [official MDX extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for [VS Code](https://code.visualstudio.com/).
+
+- Updated dependencies [[`26b77b8fe`](https://github.com/withastro/astro/commit/26b77b8fef0e03bfc5550aecaa1f56a4fc1cd297)]:
+  - astro@3.3.4
+
 ## 1.1.2
 
 ### Patch Changes
@@ -695,7 +1117,7 @@
 
 ### Patch Changes
 
-- [#5667](https://github.com/withastro/astro/pull/5667) [`a5ba4af79`](https://github.com/withastro/astro/commit/a5ba4af79930145f4edf66d45cd40ddad045cc86) Thanks [@bholmesdev](https://github.com/bholmesdev)! - Chore: remove verbose "Now interiting Markdown plugins..." logs
+- [#5667](https://github.com/withastro/astro/pull/5667) [`a5ba4af79`](https://github.com/withastro/astro/commit/a5ba4af79930145f4edf66d45cd40ddad045cc86) Thanks [@bholmesdev](https://github.com/bholmesdev)! - Chore: remove verbose "Now inheriting Markdown plugins..." logs
 
 - [#5648](https://github.com/withastro/astro/pull/5648) [`853081d1c`](https://github.com/withastro/astro/commit/853081d1c857d8ad8a9634c37ed8fd123d32d241) Thanks [@bholmesdev](https://github.com/bholmesdev)! - Prevent relative image paths in `src/content/`
 

@@ -1,7 +1,8 @@
-import type { AstroSettings, ComponentInstance, RouteData } from '../@types/astro.js';
 import { RedirectComponentInstance, routeIsRedirect } from '../core/redirects/index.js';
-import type DevPipeline from '../vite-plugin-astro-server/devPipeline.js';
-import { preload } from '../vite-plugin-astro-server/index.js';
+import { routeComparator } from '../core/routing/priority.js';
+import type { AstroSettings, ComponentInstance } from '../types/astro.js';
+import type { RouteData } from '../types/public/internal.js';
+import type { DevPipeline } from '../vite-plugin-astro-server/pipeline.js';
 import { getPrerenderStatus } from './metadata.js';
 
 type GetSortedPreloadedMatchesParams = {
@@ -20,7 +21,9 @@ export async function getSortedPreloadedMatches({
 			matches,
 			settings,
 		})
-	).sort((a, b) => prioritizePrerenderedMatchesComparator(a.route, b.route));
+	)
+		.sort((a, b) => routeComparator(a.route, b.route))
+		.sort((a, b) => prioritizePrerenderedMatchesComparator(a.route, b.route));
 }
 
 type PreloadAndSetPrerenderStatusParams = {
@@ -40,33 +43,32 @@ async function preloadAndSetPrerenderStatus({
 	matches,
 	settings,
 }: PreloadAndSetPrerenderStatusParams): Promise<PreloadAndSetPrerenderStatusResult[]> {
-	const preloaded = await Promise.all(
-		matches.map(async (route) => {
-			const filePath = new URL(`./${route.component}`, settings.config.root);
-
-			if (routeIsRedirect(route)) {
-				return {
-					preloadedComponent: RedirectComponentInstance,
-					route,
-					filePath,
-				};
-			}
-
-			const preloadedComponent = await preload({ pipeline, filePath });
-
-			// gets the prerender metadata set by the `astro:scanner` vite plugin
-			const prerenderStatus = getPrerenderStatus({
+	const preloaded = new Array<PreloadAndSetPrerenderStatusResult>();
+	for (const route of matches) {
+		const filePath = new URL(`./${route.component}`, settings.config.root);
+		if (routeIsRedirect(route)) {
+			preloaded.push({
+				preloadedComponent: RedirectComponentInstance,
+				route,
 				filePath,
-				loader: pipeline.getModuleLoader(),
 			});
+			continue;
+		}
 
-			if (prerenderStatus !== undefined) {
-				route.prerender = prerenderStatus;
-			}
+		const preloadedComponent = await pipeline.preload(route, filePath);
 
-			return { preloadedComponent, route, filePath };
-		})
-	);
+		// gets the prerender metadata set by the `astro:scanner` vite plugin
+		const prerenderStatus = getPrerenderStatus({
+			filePath,
+			loader: pipeline.loader,
+		});
+
+		if (prerenderStatus !== undefined) {
+			route.prerender = prerenderStatus;
+		}
+
+		preloaded.push({ preloadedComponent, route, filePath });
+	}
 	return preloaded;
 }
 

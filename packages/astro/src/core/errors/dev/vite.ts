@@ -1,13 +1,13 @@
 import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { codeToHtml } from 'shikiji';
+import { codeToHtml, createCssVariablesTheme } from 'shiki';
+import type { ShikiTransformer } from 'shiki';
 import type { ErrorPayload } from 'vite';
+import type { SSRLoadedRenderer } from '../../../types/public/internal.js';
 import type { ModuleLoader } from '../../module-loader/index.js';
-import { replaceCssVariables } from '../../shiki.js';
 import { FailedToLoadModuleSSR, InvalidGlob, MdxIntegrationMissingError } from '../errors-data.js';
 import { AstroError, type ErrorWithMetadata } from '../errors.js';
 import { createSafeError } from '../utils.js';
-import type { SSRLoadedRenderer } from './../../../@types/astro.js';
 import { getDocsForError, renderErrorMarkdown } from './utils.js';
 
 export function enhanceViteSSRError({
@@ -41,7 +41,7 @@ export function enhanceViteSSRError({
 		// Vite has a fairly generic error message when it fails to load a module, let's try to enhance it a bit
 		// https://github.com/vitejs/vite/blob/ee7c28a46a6563d54b828af42570c55f16b15d2c/packages/vite/src/node/ssr/ssrModuleLoader.ts#L91
 		let importName: string | undefined;
-		if ((importName = safeError.message.match(/Failed to load url (.*?) \(resolved id:/)?.[1])) {
+		if ((importName = /Failed to load url (.*?) \(resolved id:/.exec(safeError.message)?.[1])) {
 			safeError.title = FailedToLoadModuleSSR.title;
 			safeError.name = 'FailedToLoadModuleSSR';
 			safeError.message = FailedToLoadModuleSSR.message(importName);
@@ -64,9 +64,10 @@ export function enhanceViteSSRError({
 		// Vite throws a syntax error trying to parse MDX without a plugin.
 		// Suggest installing the MDX integration if none is found.
 		if (
+			fileId &&
 			!renderers?.find((r) => r.name === '@astrojs/mdx') &&
-			safeError.message.match(/Syntax error/) &&
-			fileId?.match(/\.mdx$/)
+			safeError.message.includes('Syntax error') &&
+			/.mdx$/.test(fileId)
 		) {
 			safeError = new AstroError({
 				...MdxIntegrationMissingError,
@@ -77,13 +78,12 @@ export function enhanceViteSSRError({
 		}
 
 		// Since Astro.glob is a wrapper around Vite's import.meta.glob, errors don't show accurate information, let's fix that
-		if (/Invalid glob/.test(safeError.message)) {
-			const globPattern = safeError.message.match(/glob: "(.+)" \(/)?.[1];
+		if (safeError.message.includes('Invalid glob')) {
+			const globPattern = /glob: "(.+)" \(/.exec(safeError.message)?.[1];
 
 			if (globPattern) {
 				safeError.message = InvalidGlob.message(globPattern);
 				safeError.name = 'InvalidGlob';
-				safeError.hint = InvalidGlob.hint;
 				safeError.title = InvalidGlob.title;
 
 				const line = lns.findIndex((ln) => ln.includes(globPattern));
@@ -105,6 +105,7 @@ export function enhanceViteSSRError({
 }
 
 export interface AstroErrorPayload {
+	__isEnhancedAstroErrorPayload: true;
 	type: ErrorPayload['type'];
 	err: Omit<ErrorPayload['err'], 'loc'> & {
 		name?: string;
@@ -112,7 +113,7 @@ export interface AstroErrorPayload {
 		hint?: string;
 		docslink?: string;
 		highlightedCode?: string;
-		loc: {
+		loc?: {
 			file?: string;
 			line?: number;
 			column?: number;
@@ -125,7 +126,11 @@ export interface AstroErrorPayload {
 // Map these to `.js` during error highlighting.
 const ALTERNATIVE_JS_EXTS = ['cjs', 'mjs'];
 const ALTERNATIVE_MD_EXTS = ['mdoc'];
-const INLINE_STYLE_SELECTOR_GLOBAL = /style="(.*?)"/g;
+
+let _cssVariablesTheme: ReturnType<typeof createCssVariablesTheme>;
+const cssVariablesTheme = () =>
+	_cssVariablesTheme ??
+	(_cssVariablesTheme = createCssVariablesTheme({ variablePrefix: '--astro-code-' }));
 
 /**
  * Generate a payload for Vite's error overlay
@@ -144,26 +149,23 @@ export async function getViteErrorPayload(err: ErrorWithMetadata): Promise<Astro
 	let highlighterLang = err.loc?.file?.split('.').pop();
 	if (ALTERNATIVE_JS_EXTS.includes(highlighterLang ?? '')) {
 		highlighterLang = 'js';
-	}
-	if (ALTERNATIVE_MD_EXTS.includes(highlighterLang ?? '')) {
+	} else if (ALTERNATIVE_MD_EXTS.includes(highlighterLang ?? '')) {
 		highlighterLang = 'md';
 	}
-	let highlightedCode = err.fullCode
+	const highlightedCode = err.fullCode
 		? await codeToHtml(err.fullCode, {
-				// @ts-expect-error always assume that shiki can accept the lang string
-				lang: highlighterLang,
-				theme: 'css-variables',
-				lineOptions: err.loc?.line ? [{ line: err.loc.line, classes: ['error-line'] }] : undefined,
-		  })
+				lang: highlighterLang ?? 'text',
+				theme: cssVariablesTheme(),
+				transformers: [
+					transformerCompactLineOptions(
+						err.loc?.line ? [{ line: err.loc.line, classes: ['error-line'] }] : undefined,
+					),
+				],
+			})
 		: undefined;
 
-	if (highlightedCode) {
-		highlightedCode = highlightedCode.replace(INLINE_STYLE_SELECTOR_GLOBAL, (m) =>
-			replaceCssVariables(m)
-		);
-	}
-
 	return {
+		__isEnhancedAstroErrorPayload: true,
 		type: 'error',
 		err: {
 			...err,
@@ -182,6 +184,30 @@ export async function getViteErrorPayload(err: ErrorWithMetadata): Promise<Astro
 			plugin,
 			stack: err.stack,
 			cause: err.cause,
+		},
+	};
+}
+
+/**
+ * Transformer for `shiki`'s legacy `lineOptions`, allows to add classes to specific lines
+ * FROM: https://github.com/shikijs/shiki/blob/4a58472070a9a359a4deafec23bb576a73e24c6a/packages/transformers/src/transformers/compact-line-options.ts
+ * LICENSE: https://github.com/shikijs/shiki/blob/4a58472070a9a359a4deafec23bb576a73e24c6a/LICENSE
+ */
+function transformerCompactLineOptions(
+	lineOptions: {
+		/**
+		 * 1-based line number.
+		 */
+		line: number;
+		classes?: string[];
+	}[] = [],
+): ShikiTransformer {
+	return {
+		name: '@shikijs/transformers:compact-line-options',
+		line(node, line) {
+			const lineOption = lineOptions.find((o) => o.line === line);
+			if (lineOption?.classes) this.addClassToHast(node, lineOption.classes);
+			return node;
 		},
 	};
 }

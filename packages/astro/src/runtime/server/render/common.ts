@@ -1,16 +1,17 @@
-import type { SSRResult } from '../../../@types/astro.js';
 import type { RenderInstruction } from './instruction.js';
 
-import { HTMLBytes, HTMLString, markHTMLString } from '../escape.js';
+import type { SSRResult } from '../../../types/public/internal.js';
+import type { HTMLBytes, HTMLString } from '../escape.js';
+import { markHTMLString } from '../escape.js';
 import {
+	type PrescriptType,
 	determineIfNeedsHydrationScript,
 	determinesIfNeedsDirectiveScript,
 	getPrescripts,
-	type PrescriptType,
 } from '../scripts.js';
 import { renderAllHeadContent } from './head.js';
 import { isRenderInstruction } from './instruction.js';
-import { isSlotString, type SlotString } from './slot.js';
+import { type SlotString, isSlotString } from './slot.js';
 
 /**
  * Possible chunk types to be written to the destination, and it'll
@@ -53,7 +54,7 @@ export const decoder = new TextDecoder();
 // can ensure they are added only once, and as soon as possible.
 function stringifyChunk(
 	result: SSRResult,
-	chunk: string | HTMLString | SlotString | RenderInstruction
+	chunk: string | HTMLString | SlotString | RenderInstruction,
 ): string {
 	if (isRenderInstruction(chunk)) {
 		const instruction = chunk;
@@ -67,8 +68,8 @@ function stringifyChunk(
 				let prescriptType: PrescriptType = needsHydrationScript
 					? 'both'
 					: needsDirectiveScript
-					? 'directive'
-					: null;
+						? 'directive'
+						: null;
 				if (prescriptType) {
 					let prescripts = getPrescripts(result, prescriptType, hydration.directive);
 					return markHTMLString(prescripts);
@@ -77,16 +78,26 @@ function stringifyChunk(
 				}
 			}
 			case 'head': {
-				if (result._metadata.hasRenderedHead) {
+				if (result._metadata.hasRenderedHead || result.partial) {
 					return '';
 				}
 				return renderAllHeadContent(result);
 			}
 			case 'maybe-head': {
-				if (result._metadata.hasRenderedHead || result._metadata.headInTree) {
+				if (result._metadata.hasRenderedHead || result._metadata.headInTree || result.partial) {
 					return '';
 				}
 				return renderAllHeadContent(result);
+			}
+			case 'renderer-hydration-script': {
+				const { rendererSpecificHydrationScripts } = result._metadata;
+				const { rendererName } = instruction;
+
+				if (!rendererSpecificHydrationScripts.has(rendererName)) {
+					rendererSpecificHydrationScripts.add(rendererName);
+					return instruction.render();
+				}
+				return '';
 			}
 			default: {
 				throw new Error(`Unknown chunk type: ${(chunk as any).type}`);
@@ -119,7 +130,7 @@ export function chunkToString(result: SSRResult, chunk: Exclude<RenderDestinatio
 
 export function chunkToByteArray(
 	result: SSRResult,
-	chunk: Exclude<RenderDestinationChunk, Response>
+	chunk: Exclude<RenderDestinationChunk, Response>,
 ): Uint8Array {
 	if (ArrayBuffer.isView(chunk)) {
 		return chunk as Uint8Array;

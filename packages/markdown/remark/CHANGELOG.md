@@ -1,5 +1,346 @@
 # @astrojs/markdown-remark
 
+## 6.0.2
+
+### Patch Changes
+
+- [#12361](https://github.com/withastro/astro/pull/12361) [`3d89e62`](https://github.com/withastro/astro/commit/3d89e6282235a8da45d9ddfe02bcf7ec78056941) Thanks [@LunaticMuch](https://github.com/LunaticMuch)! - Upgrades the `esbuild` version to match `vite`
+
+## 6.0.1
+
+### Patch Changes
+
+- [#12646](https://github.com/withastro/astro/pull/12646) [`f13417b`](https://github.com/withastro/astro/commit/f13417bfbf73130c224752379e2da33084f89554) Thanks [@bluwy](https://github.com/bluwy)! - Avoids parsing frontmatter that are not at the top of a file
+
+- [#12570](https://github.com/withastro/astro/pull/12570) [`87231b1`](https://github.com/withastro/astro/commit/87231b1168da66bb593f681206c42fa555dfcabc) Thanks [@GrimLink](https://github.com/GrimLink)! - Removes trailing new line in code blocks to prevent generating a trailing empty `<span />` tag
+
+- [#12664](https://github.com/withastro/astro/pull/12664) [`a71e9b9`](https://github.com/withastro/astro/commit/a71e9b93b317edc0ded49d4d50f1b7841c8cd428) Thanks [@bluwy](https://github.com/bluwy)! - Fixes frontmatter parsing if file is encoded in UTF8 with BOM
+
+## 6.0.0
+
+### Major Changes
+
+- [#11861](https://github.com/withastro/astro/pull/11861) [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59) Thanks [@bluwy](https://github.com/bluwy)! - Cleans up Astro-specific metadata attached to `vfile.data` in Remark and Rehype plugins. Previously, the metadata was attached in different locations with inconsistent names. The metadata is now renamed as below:
+
+  - `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
+  - `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
+
+  The types of `imagePaths` has also been updated from `Set<string>` to `string[]`. The `vfile.data.astro.frontmatter` metadata is left unchanged.
+
+  While we don't consider these APIs public, they can be accessed by Remark and Rehype plugins that want to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
+
+- [#12008](https://github.com/withastro/astro/pull/12008) [`5608338`](https://github.com/withastro/astro/commit/560833843c6d3ce2b6c6c473ec4ae70e744bf255) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Welcome to the Astro 5 beta! This release has no changes from the latest alpha of this package, but it does bring us one step closer to the final, stable release.
+
+  Starting from this release, no breaking changes will be introduced unless absolutely necessary.
+
+  To learn how to upgrade, check out the [Astro v5.0 upgrade guide in our beta docs site](https://5-0-0-beta.docs.astro.build/en/guides/upgrade-to/v5/).
+
+- [#11825](https://github.com/withastro/astro/pull/11825) [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce) Thanks [@bluwy](https://github.com/bluwy)! - Updates return object of `createShikiHighlighter` as `codeToHast` and `codeToHtml` to allow generating either the hast or html string directly
+
+- [#11661](https://github.com/withastro/astro/pull/11661) [`83a2a64`](https://github.com/withastro/astro/commit/83a2a648418ad30f4eb781d1c1b5f2d8a8ac846e) Thanks [@bluwy](https://github.com/bluwy)! - Renames the following CSS variables theme color token names to better align with the Shiki v1 defaults:
+
+  - `--astro-code-color-text` => `--astro-code-foreground`
+  - `--astro-code-color-background` => `--astro-code-background`
+
+  You can perform a global find and replace in your project to migrate to the new token names.
+
+- [#11861](https://github.com/withastro/astro/pull/11861) [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59) Thanks [@bluwy](https://github.com/bluwy)! - Removes `InvalidAstroDataError`, `safelyGetAstroData`, and `setVfileFrontmatter` APIs in favour of `isFrontmatterValid`
+
+### Patch Changes
+
+- [#12075](https://github.com/withastro/astro/pull/12075) [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819) Thanks [@bluwy](https://github.com/bluwy)! - Parses frontmatter ourselves
+
+- Updated dependencies [[`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7)]:
+  - @astrojs/prism@3.2.0
+
+## 6.0.0-beta.3
+
+### Patch Changes
+
+- Updated dependencies [[`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7)]:
+  - @astrojs/prism@3.2.0-beta.0
+
+## 6.0.0-beta.2
+
+### Patch Changes
+
+- [#12075](https://github.com/withastro/astro/pull/12075) [`a19530e`](https://github.com/withastro/astro/commit/a19530e377b7d7afad58a33b23c0a5df1c376819) Thanks [@bluwy](https://github.com/bluwy)! - Parses frontmatter ourselves
+
+## 6.0.0-beta.1
+
+### Major Changes
+
+- [#12008](https://github.com/withastro/astro/pull/12008) [`5608338`](https://github.com/withastro/astro/commit/560833843c6d3ce2b6c6c473ec4ae70e744bf255) Thanks [@Princesseuh](https://github.com/Princesseuh)! - Welcome to the Astro 5 beta! This release has no changes from the latest alpha of this package, but it does bring us one step closer to the final, stable release.
+
+  Starting from this release, no breaking changes will be introduced unless absolutely necessary.
+
+  To learn how to upgrade, check out the [Astro v5.0 upgrade guide in our beta docs site](https://5-0-0-beta.docs.astro.build/en/guides/upgrade-to/v5/).
+
+## 6.0.0-alpha.1
+
+### Major Changes
+
+- [#11861](https://github.com/withastro/astro/pull/11861) [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59) Thanks [@bluwy](https://github.com/bluwy)! - Cleans up Astro-specific metadata attached to `vfile.data` in Remark and Rehype plugins. Previously, the metadata was attached in different locations with inconsistent names. The metadata is now renamed as below:
+
+  - `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
+  - `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
+
+  The types of `imagePaths` has also been updated from `Set<string>` to `string[]`. The `vfile.data.astro.frontmatter` metadata is left unchanged.
+
+  While we don't consider these APIs public, they can be accessed by Remark and Rehype plugins that want to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
+
+- [#11825](https://github.com/withastro/astro/pull/11825) [`560ef15`](https://github.com/withastro/astro/commit/560ef15ad23bd137b56ef1048eb2df548b99fdce) Thanks [@bluwy](https://github.com/bluwy)! - Updates return object of `createShikiHighlighter` as `codeToHast` and `codeToHtml` to allow generating either the hast or html string directly
+
+- [#11861](https://github.com/withastro/astro/pull/11861) [`3ab3b4e`](https://github.com/withastro/astro/commit/3ab3b4efbcdd2aabea5f949deedf51a5acefae59) Thanks [@bluwy](https://github.com/bluwy)! - Removes `InvalidAstroDataError`, `safelyGetAstroData`, and `setVfileFrontmatter` APIs in favour of `isFrontmatterValid`
+
+## 6.0.0-alpha.0
+
+### Major Changes
+
+- [#11661](https://github.com/withastro/astro/pull/11661) [`83a2a64`](https://github.com/withastro/astro/commit/83a2a648418ad30f4eb781d1c1b5f2d8a8ac846e) Thanks [@bluwy](https://github.com/bluwy)! - Renames the following CSS variables theme color token names to better align with the Shiki v1 defaults:
+
+  - `--astro-code-color-text` => `--astro-code-foreground`
+  - `--astro-code-color-background` => `--astro-code-background`
+
+  You can perform a global find and replace in your project to migrate to the new token names.
+
+## 5.3.0
+
+### Minor Changes
+
+- [#12039](https://github.com/withastro/astro/pull/12039) [`710a1a1`](https://github.com/withastro/astro/commit/710a1a11f488ff6ed3da6d3e0723b2322ccfe27b) Thanks [@ematipico](https://github.com/ematipico)! - Adds a `markdown.shikiConfig.langAlias` option that allows [aliasing a non-supported code language to a known language](https://shiki.style/guide/load-lang#custom-language-aliases). This is useful when the language of your code samples is not [a built-in Shiki language](https://shiki.style/languages), but you want your Markdown source to contain an accurate language while also displaying syntax highlighting.
+
+  The following example configures Shiki to highlight `cjs` code blocks using the `javascript` syntax highlighter:
+
+  ```js
+  import { defineConfig } from 'astro/config';
+
+  export default defineConfig({
+    markdown: {
+      shikiConfig: {
+        langAlias: {
+          cjs: 'javascript',
+        },
+      },
+    },
+  });
+  ```
+
+  Then in your Markdown, you can use the alias as the language for a code block for syntax highlighting:
+
+  ````md
+  ```cjs
+  'use strict';
+
+  function commonJs() {
+    return 'I am a commonjs file';
+  }
+  ```
+  ````
+
+## 5.2.0
+
+### Minor Changes
+
+- [#11341](https://github.com/withastro/astro/pull/11341) [`49b5145`](https://github.com/withastro/astro/commit/49b5145158a603b9bb951bf914a6a9780c218704) Thanks [@madcampos](https://github.com/madcampos)! - Adds support for [Shiki's `defaultColor` option](https://shiki.style/guide/dual-themes#without-default-color).
+
+  This option allows you to override the values of a theme's inline style, adding only CSS variables to give you more flexibility in applying multiple color themes.
+
+  Configure `defaultColor: false` in your Shiki config to apply throughout your site, or pass to Astro's built-in `<Code>` component to style an individual code block.
+
+  ```js title="astro.config.mjs"
+  import { defineConfig } from 'astro/config';
+  export default defineConfig({
+    markdown: {
+      shikiConfig: {
+        themes: {
+          light: 'github-light',
+          dark: 'github-dark',
+        },
+        defaultColor: false,
+      },
+    },
+  });
+  ```
+
+  ```astro
+  ---
+  import { Code } from 'astro:components';
+  ---
+
+  <Code code={`const useMyColors = true`} lang="js" defaultColor={false} />
+  ```
+
+## 5.1.1
+
+### Patch Changes
+
+- [#11310](https://github.com/withastro/astro/pull/11310) [`b6afe6a`](https://github.com/withastro/astro/commit/b6afe6a782f68f4a279463a144baaf99cb96b6dc) Thanks [@bluwy](https://github.com/bluwy)! - Handles encoded image paths in internal rehype plugins and return decoded paths from markdown vfile's `data.imagePaths`
+
+## 5.1.0
+
+### Minor Changes
+
+- [#10538](https://github.com/withastro/astro/pull/10538) [`ccafa8d230f65c9302421a0ce0a0adc5824bfd55`](https://github.com/withastro/astro/commit/ccafa8d230f65c9302421a0ce0a0adc5824bfd55) Thanks [@604qgc](https://github.com/604qgc)! - Adds a `data-language` attribute on the rendered `pre` elements to expose the highlighted syntax language.
+
+  For example, the following Markdown code block will expose `data-language="python"`:
+
+  ````
+  \```python
+  def func():
+      print('Hello Astro!')
+  \```
+  ````
+
+  This allows retrieving the language in a rehype plugin from `node.properties.dataLanguage` by accessing the `<pre>` element using `{ tagName: "pre" }`:
+
+  ```js
+  // myRehypePre.js
+  import { visit } from "unist-util-visit";
+  export default function myRehypePre() {
+    return (tree) => {
+      visit(tree, { tagName: "pre" }, (node) => {
+        const lang = node.properties.dataLanguage;
+        [...]
+      });
+    };
+  }
+  ```
+
+  Note: The `<pre>` element is not exposed when using Astro's `<Code />` component which outputs flattened HTML.
+
+  The `data-language` attribute may also be used in css rules:
+
+  ```css
+  pre::before {
+    content: attr(data-language);
+  }
+
+  pre[data-language='javascript'] {
+    font-size: 2rem;
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [[`683d51a5eecafbbfbfed3910a3f1fbf0b3531b99`](https://github.com/withastro/astro/commit/683d51a5eecafbbfbfed3910a3f1fbf0b3531b99)]:
+  - @astrojs/prism@3.1.0
+
+## 5.0.0
+
+### Major Changes
+
+- [#10629](https://github.com/withastro/astro/pull/10629) [`2cf116f80cb5e421ab5cc5eb4a654e7b78c1b8de`](https://github.com/withastro/astro/commit/2cf116f80cb5e421ab5cc5eb4a654e7b78c1b8de) Thanks [@bluwy](https://github.com/bluwy)! - Removes deprecated APIs including `remarkShiki`, `remarkPrism`, `replaceCssVariables` and several unused types
+
+- [#10618](https://github.com/withastro/astro/pull/10618) [`374efcdff9625ca43309d89e3b9cfc9174351512`](https://github.com/withastro/astro/commit/374efcdff9625ca43309d89e3b9cfc9174351512) Thanks [@43081j](https://github.com/43081j)! - Updates Shiki syntax highlighting to lazily load shiki languages by default (only preloading `plaintext`). Additionally, the `createShikiHighlighter()` API now returns an asynchronous `highlight()` function due to this.
+
+## 4.3.2
+
+### Patch Changes
+
+- [#10540](https://github.com/withastro/astro/pull/10540) [`c585528f446ccca3d4c643f4af5d550b93c18902`](https://github.com/withastro/astro/commit/c585528f446ccca3d4c643f4af5d550b93c18902) Thanks [@imkunet](https://github.com/imkunet)! - This patch allows Shiki to use all of its reserved languages instead of the
+  previous behavior of forcing unknown languages to plaintext.
+
+## 4.3.1
+
+### Patch Changes
+
+- [#10494](https://github.com/withastro/astro/pull/10494) [`19e42c368184013fc30d1e46753b9e9383bb2bdf`](https://github.com/withastro/astro/commit/19e42c368184013fc30d1e46753b9e9383bb2bdf) Thanks [@bluwy](https://github.com/bluwy)! - Fixes support for Shiki transformers that access the `meta` to conditionally perform transformations
+
+## 4.3.0
+
+### Minor Changes
+
+- [#9960](https://github.com/withastro/astro/pull/9960) [`c081adf998d30419fed97d8fccc11340cdc512e0`](https://github.com/withastro/astro/commit/c081adf998d30419fed97d8fccc11340cdc512e0) Thanks [@StandardGage](https://github.com/StandardGage)! - Allows passing any props to the `<Code />` component
+
+- [#10130](https://github.com/withastro/astro/pull/10130) [`5a9528741fa98d017b269c7e4f013058028bdc5d`](https://github.com/withastro/astro/commit/5a9528741fa98d017b269c7e4f013058028bdc5d) Thanks [@bluwy](https://github.com/bluwy)! - Migrates `shikiji` to `shiki` 1.0
+
+- [#10104](https://github.com/withastro/astro/pull/10104) [`a31bbd7ff8f3ec62ee507f72d1d25140b82ffc18`](https://github.com/withastro/astro/commit/a31bbd7ff8f3ec62ee507f72d1d25140b82ffc18) Thanks [@remcohaszing](https://github.com/remcohaszing)! - Changes Astro's internal syntax highlighting to use rehype plugins instead of remark plugins. This provides better interoperability with other [rehype plugins](https://github.com/rehypejs/rehype/blob/main/doc/plugins.md#list-of-plugins) that deal with code blocks, in particular with third party syntax highlighting plugins and [`rehype-mermaid`](https://github.com/remcohaszing/rehype-mermaid).
+
+  This may be a breaking change if you are currently using:
+
+  - a remark plugin that relies on nodes of type `html`
+  - a rehype plugin that depends on nodes of type `raw`.
+
+  Please review your rendered code samples carefully, and if necessary, consider using a rehype plugin that deals with the generated `element` nodes instead. You can transform the AST of raw HTML strings, or alternatively use [`hast-util-to-html`](https://github.com/syntax-tree/hast-util-to-html) to get a string from a `raw` node.
+
+## 4.2.1
+
+### Patch Changes
+
+- [#9866](https://github.com/withastro/astro/pull/9866) [`44c957f893c6bf5f5b7c78301de7b21c5975584d`](https://github.com/withastro/astro/commit/44c957f893c6bf5f5b7c78301de7b21c5975584d) Thanks [@ktym4a](https://github.com/ktym4a)! - Fixes a bug where non-UTF-8 file names are not displayed when using relative paths in markdowns.
+
+## 4.2.0
+
+### Minor Changes
+
+- [#9738](https://github.com/withastro/astro/pull/9738) [`a505190933365268d48139a5f197a3cfb5570870`](https://github.com/withastro/astro/commit/a505190933365268d48139a5f197a3cfb5570870) Thanks [@bluwy](https://github.com/bluwy)! - Fixes usage in browser environments by using subpath imports
+
+### Patch Changes
+
+- [#9736](https://github.com/withastro/astro/pull/9736) [`53c69dcc82cdf4000aff13a6c11fffe19096cf45`](https://github.com/withastro/astro/commit/53c69dcc82cdf4000aff13a6c11fffe19096cf45) Thanks [@bluwy](https://github.com/bluwy)! - Initializes internal `cwdUrlStr` variable lazily for performance, and workaround Rollup side-effect detection bug when building for non-Node runtimes
+
+- [#9723](https://github.com/withastro/astro/pull/9723) [`2f81cffa9da9db0e2802d303f94feaee8d2f54ec`](https://github.com/withastro/astro/commit/2f81cffa9da9db0e2802d303f94feaee8d2f54ec) Thanks [@blackmann](https://github.com/blackmann)! - Fixes a case where transformers wouldn't work on the `class` property
+
+## 4.1.0
+
+### Minor Changes
+
+- [#9566](https://github.com/withastro/astro/pull/9566) [`165cfc154be477337037185c32b308616d1ed6fa`](https://github.com/withastro/astro/commit/165cfc154be477337037185c32b308616d1ed6fa) Thanks [@OliverSpeir](https://github.com/OliverSpeir)! - Allows remark plugins to pass options specifying how images in `.md` files will be optimized
+
+- [#9643](https://github.com/withastro/astro/pull/9643) [`e9a72d9a91a3741566866bcaab11172cb0dc7d31`](https://github.com/withastro/astro/commit/e9a72d9a91a3741566866bcaab11172cb0dc7d31) Thanks [@blackmann](https://github.com/blackmann)! - Adds a new `markdown.shikiConfig.transformers` config option. You can use this option to transform the Shikiji hast (AST format of the generated HTML) to customize the final HTML. Also updates Shikiji to the latest stable version.
+
+  See [Shikiji's documentation](https://shikiji.netlify.app/guide/transformers) for more details about creating your own custom transformers, and [a list of common transformers](https://shikiji.netlify.app/packages/transformers) you can add directly to your project.
+
+## 4.0.1
+
+### Patch Changes
+
+- [#9349](https://github.com/withastro/astro/pull/9349) [`270c6cc27`](https://github.com/withastro/astro/commit/270c6cc27f20995883fcdabbff9b56d7f041f9e4) Thanks [@lilnasy](https://github.com/lilnasy)! - Fixes an issue where this package could not be installed alongside Astro 4.0.
+
+## 4.0.0
+
+### Major Changes
+
+- [#9138](https://github.com/withastro/astro/pull/9138) [`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3) Thanks [@bluwy](https://github.com/bluwy)! - Updates the unified, remark, and rehype dependencies to latest. Make sure to update your custom remark and rehype plugins as well to be compatible with the latest versions.
+
+  **Potentially breaking change:** The default value of `markdown.remarkRehype.footnoteBackLabel` is changed from `"Back to content"` to `"Back to reference 1"`. See the `mdast-util-to-hast` [commit](https://github.com/syntax-tree/mdast-util-to-hast/commit/56c88e45690be138fad9f0bf367b939d09816863) for more information.
+
+- [#9182](https://github.com/withastro/astro/pull/9182) [`c7953645e`](https://github.com/withastro/astro/commit/c7953645eeaaf9e87c6db4494b0023d2c1878ff0) Thanks [@bluwy](https://github.com/bluwy)! - Removes deprecated APIs. All Astro packages had been refactored to not use these APIs.
+
+### Patch Changes
+
+- [#9147](https://github.com/withastro/astro/pull/9147) [`addb57c8e`](https://github.com/withastro/astro/commit/addb57c8e80b7b67ec61224666f3a1db5c44410c) Thanks [@bluwy](https://github.com/bluwy)! - Fixes `RemarkRehype` type's `handler` and `handlers` properties
+
+## 4.0.0-beta.0
+
+### Major Changes
+
+- [#9138](https://github.com/withastro/astro/pull/9138) [`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3) Thanks [@bluwy](https://github.com/bluwy)! - Updates the unified, remark, and rehype dependencies to latest. Make sure to update your custom remark and rehype plugins as well to be compatible with the latest versions.
+
+  **Potentially breaking change:** The default value of `markdown.remarkRehype.footnoteBackLabel` is changed from `"Back to content"` to `"Back to reference 1"`. See the `mdast-util-to-hast` [commit](https://github.com/syntax-tree/mdast-util-to-hast/commit/56c88e45690be138fad9f0bf367b939d09816863) for more information.
+
+- [#9182](https://github.com/withastro/astro/pull/9182) [`c7953645e`](https://github.com/withastro/astro/commit/c7953645eeaaf9e87c6db4494b0023d2c1878ff0) Thanks [@bluwy](https://github.com/bluwy)! - Removes deprecated APIs. All Astro packages had been refactored to not use these APIs.
+
+### Patch Changes
+
+- [#9147](https://github.com/withastro/astro/pull/9147) [`addb57c8e`](https://github.com/withastro/astro/commit/addb57c8e80b7b67ec61224666f3a1db5c44410c) Thanks [@bluwy](https://github.com/bluwy)! - Fixes `RemarkRehype` type's `handler` and `handlers` properties
+
+- Updated dependencies [[`abf601233`](https://github.com/withastro/astro/commit/abf601233f8188d118a8cb063c777478d8d9f1a3), [`6201bbe96`](https://github.com/withastro/astro/commit/6201bbe96c2a083fb201e4a43a9bd88499821a3e), [`cdabf6ef0`](https://github.com/withastro/astro/commit/cdabf6ef02be7220fd2b6bdcef924ceca089381e), [`1c48ed286`](https://github.com/withastro/astro/commit/1c48ed286538ab9e354eca4e4dcd7c6385c96721), [`37697a2c5`](https://github.com/withastro/astro/commit/37697a2c5511572dc29c0a4ea46f90c2f62be8e6), [`bd0c2e9ae`](https://github.com/withastro/astro/commit/bd0c2e9ae3389a9d3085050c1e8134ae98dff299), [`0fe3a7ed5`](https://github.com/withastro/astro/commit/0fe3a7ed5d7bb1a9fce1623e84ba14104b51223c), [`710be505c`](https://github.com/withastro/astro/commit/710be505c9ddf416e77a75343d8cae9c497d72c6), [`153a5abb9`](https://github.com/withastro/astro/commit/153a5abb905042ac68b712514dc9ec387d3e6b17)]:
+  - astro@4.0.0-beta.0
+
+## 3.5.0
+
+### Minor Changes
+
+- [#9083](https://github.com/withastro/astro/pull/9083) [`4537ecf0d`](https://github.com/withastro/astro/commit/4537ecf0d060f89cb8c000338a7fc5f4197a88c8) Thanks [@bluwy](https://github.com/bluwy)! - Exports `createShikiHighlighter` for low-level syntax highlighting usage
+
+## 3.4.0
+
+### Minor Changes
+
+- [#8903](https://github.com/withastro/astro/pull/8903) [`c5010aad3`](https://github.com/withastro/astro/commit/c5010aad3475669648dc939e00f88bbb52489d0d) Thanks [@horo-fox](https://github.com/horo-fox)! - Adds experimental support for multiple shiki themes with the new `markdown.shikiConfig.experimentalThemes` option.
+
 ## 3.3.0
 
 ### Minor Changes

@@ -1,6 +1,9 @@
 import { EventEmitter } from 'node:events';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type * as vite from 'vite';
+import { collectErrorMetadata } from '../errors/dev/utils.js';
+import { getViteErrorPayload } from '../errors/dev/vite.js';
 import type { ModuleLoader, ModuleLoaderEventEmitter } from './loader.js';
 
 export function createViteLoader(viteServer: vite.ViteDevServer): ModuleLoader {
@@ -31,8 +34,8 @@ export function createViteLoader(viteServer: vite.ViteDevServer): ModuleLoader {
 		}
 	});
 
-	const _wsSend = viteServer.ws.send;
-	viteServer.ws.send = function (...args: any) {
+	const _wsSend = viteServer.hot.send;
+	viteServer.hot.send = function (...args: any) {
 		// If the tsconfig changed, Vite will trigger a reload as it invalidates the module.
 		// However in Astro, the whole server is restarted when the tsconfig changes. If we
 		// do a restart and reload at the same time, the browser will refetch and the server
@@ -43,6 +46,24 @@ export function createViteLoader(viteServer: vite.ViteDevServer): ModuleLoader {
 		}
 		const msg = args[0] as vite.HMRPayload;
 		if (msg?.type === 'error') {
+			// If we have an error, but it didn't go through our error enhancement program, it means that it's a HMR error from
+			// vite itself, which goes through a different path. We need to enhance it here.
+			if (!(msg as any)['__isEnhancedAstroErrorPayload']) {
+				const err = collectErrorMetadata(msg.err, pathToFileURL(viteServer.config.root));
+				getViteErrorPayload(err).then((payload) => {
+					events.emit('hmr-error', {
+						type: 'error',
+						err: {
+							message: payload.err.message,
+							stack: payload.err.stack,
+						},
+					});
+
+					args[0] = payload;
+					_wsSend.apply(this, args);
+				});
+				return;
+			}
 			events.emit('hmr-error', msg);
 		}
 		_wsSend.apply(this, args);
@@ -75,13 +96,13 @@ export function createViteLoader(viteServer: vite.ViteDevServer): ModuleLoader {
 			return viteServer.ssrFixStacktrace(err);
 		},
 		clientReload() {
-			viteServer.ws.send({
+			viteServer.hot.send({
 				type: 'full-reload',
 				path: '*',
 			});
 		},
 		webSocketSend(msg) {
-			return viteServer.ws.send(msg);
+			return viteServer.hot.send(msg);
 		},
 		isHttps() {
 			return !!viteServer.config.server.https;

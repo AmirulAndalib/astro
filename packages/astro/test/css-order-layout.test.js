@@ -1,4 +1,5 @@
-import { expect } from 'chai';
+import * as assert from 'node:assert/strict';
+import { before, describe, it } from 'node:test';
 import * as cheerio from 'cheerio';
 import { loadFixture } from './test-utils.js';
 
@@ -21,7 +22,7 @@ describe('CSS ordering - import order with layouts', () => {
 	function getLinks(html) {
 		let $ = cheerio.load(html);
 		let out = [];
-		$('link[rel=stylesheet]').each((i, el) => {
+		$('link[rel=stylesheet]').each((_i, el) => {
 			out.push($(el).attr('href'));
 		});
 		return out;
@@ -50,15 +51,15 @@ describe('CSS ordering - import order with layouts', () => {
 			let specialButtonCSS = -1;
 			let globalCSS = -1;
 			for (let i = 0; i < content.length; i++) {
-				if (content[i].css.indexOf('.SpecialButton') !== -1) {
+				if (content[i].css.includes('.SpecialButton')) {
 					specialButtonCSS = i;
-				} else if (content[i].css.indexOf('green') !== -1) {
+				} else if (content[i].css.includes('green')) {
 					globalCSS = i;
 				}
 			}
 
-			expect(globalCSS).to.equal(0, 'global css sorted on top');
-			expect(specialButtonCSS).to.equal(1, 'component level css sorted last');
+			assert.equal(globalCSS, 0, 'global css sorted on top');
+			assert.equal(specialButtonCSS, 1, 'component level css sorted last');
 		});
 	});
 });

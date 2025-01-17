@@ -1,10 +1,12 @@
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
 	TSConfckParseError,
-	find,
-	parse,
 	type TSConfckParseOptions,
 	type TSConfckParseResult,
+	find,
+	parse,
+	toJson,
 } from 'tsconfck';
 import type { CompilerOptions, TypeAcquisition } from 'typescript';
 
@@ -51,8 +53,7 @@ export const presets = new Map<frameworkWithTSSettings, TSConfig>([
 	],
 ]);
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-type TSConfigResult<T = {}> = Promise<
+type TSConfigResult<T = object> = Promise<
 	(TSConfckParseResult & T) | 'invalid-config' | 'missing-config' | 'unknown-error'
 >;
 
@@ -63,8 +64,8 @@ type TSConfigResult<T = {}> = Promise<
  */
 export async function loadTSConfig(
 	root: string | undefined,
-	findUp = false
-): Promise<TSConfigResult<{ rawConfig: TSConfckParseResult }>> {
+	findUp = false,
+): Promise<TSConfigResult<{ rawConfig: TSConfig }>> {
 	const safeCwd = root ?? process.cwd();
 
 	const [jsconfig, tsconfig] = await Promise.all(
@@ -73,8 +74,8 @@ export async function loadTSConfig(
 			find(join(safeCwd, './dummy.txt'), {
 				root: findUp ? undefined : root,
 				configName: configName,
-			})
-		)
+			}),
+		),
 	);
 
 	// If we have both files, prefer tsconfig.json
@@ -85,7 +86,13 @@ export async function loadTSConfig(
 			return parsedConfig;
 		}
 
-		return { ...parsedConfig, rawConfig: parsedConfig.extended?.[0] ?? parsedConfig.tsconfig };
+		// tsconfck does not return the original config, so we need to parse it ourselves
+		// https://github.com/dominikg/tsconfck/issues/138
+		const rawConfig = await readFile(tsconfig, 'utf-8')
+			.then(toJson)
+			.then((content) => JSON.parse(content) as TSConfig);
+
+		return { ...parsedConfig, rawConfig };
 	}
 
 	if (jsconfig) {
@@ -95,7 +102,11 @@ export async function loadTSConfig(
 			return parsedConfig;
 		}
 
-		return { ...parsedConfig, rawConfig: parsedConfig.extended?.[0] ?? parsedConfig.tsconfig };
+		const rawConfig = await readFile(jsconfig, 'utf-8')
+			.then(toJson)
+			.then((content) => JSON.parse(content) as TSConfig);
+
+		return { ...parsedConfig, rawConfig: rawConfig };
 	}
 
 	return 'missing-config';
@@ -121,7 +132,7 @@ async function safeParse(tsconfigPath: string, options: TSConfckParseOptions = {
 
 export function updateTSConfigForFramework(
 	target: TSConfig,
-	framework: frameworkWithTSSettings
+	framework: frameworkWithTSSettings,
 ): TSConfig {
 	if (!presets.has(framework)) {
 		return target;
@@ -162,14 +173,14 @@ export type StripEnums<T extends Record<string, any>> = {
 	[K in keyof T]: T[K] extends boolean
 		? T[K]
 		: T[K] extends string
-		? T[K]
-		: T[K] extends object
-		? T[K]
-		: T[K] extends Array<any>
-		? T[K]
-		: T[K] extends undefined
-		? undefined
-		: any;
+			? T[K]
+			: T[K] extends object
+				? T[K]
+				: T[K] extends Array<any>
+					? T[K]
+					: T[K] extends undefined
+						? undefined
+						: any;
 };
 
 export interface TSConfig {

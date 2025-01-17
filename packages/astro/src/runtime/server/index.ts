@@ -24,6 +24,7 @@ export {
 	renderHead,
 	renderHTMLElement,
 	renderPage,
+	renderScript,
 	renderScriptElement,
 	renderSlot,
 	renderSlotToString,
@@ -41,7 +42,7 @@ export type {
 export { createTransitionScope, renderTransition } from './transition.js';
 
 import { markHTMLString } from './escape.js';
-import { addAttribute, Renderer } from './render/index.js';
+import { Renderer, addAttribute } from './render/index.js';
 
 export function mergeSlots(...slotted: unknown[]) {
 	const slots: Record<string, () => any> = {};
@@ -56,7 +57,7 @@ export function mergeSlots(...slotted: unknown[]) {
 	return slots;
 }
 
-/** @internal Associate JSX components with a specific renderer (see /src/vite-plugin-jsx/tag.ts) */
+/** @internal Associate JSX components with a specific renderer (see /packages/integrations/mdx/src/vite-plugin-mdx-postprocess.ts) */
 export function __astro_tag_component__(Component: unknown, rendererName: string) {
 	if (!Component) return;
 	if (typeof Component !== 'function') return;
@@ -71,7 +72,7 @@ export function __astro_tag_component__(Component: unknown, rendererName: string
 export function spreadAttributes(
 	values: Record<any, any> = {},
 	_name?: string,
-	{ class: scopedClassName }: { class?: string } = {}
+	{ class: scopedClassName }: { class?: string } = {},
 ) {
 	let output = '';
 	// If the compiler passes along a scoped class, merge with existing props or inject it

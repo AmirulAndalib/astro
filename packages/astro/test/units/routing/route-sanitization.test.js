@@ -1,16 +1,15 @@
+import * as assert from 'node:assert/strict';
+import { after, before, describe, it } from 'node:test';
+import * as cheerio from 'cheerio';
+import { createContainer } from '../../../dist/core/dev/container.js';
+import testAdapter from '../../test-adapter.js';
 import {
 	createBasicSettings,
-	createFs,
+	createFixture,
 	createRequestAndResponse,
 	defaultLogger,
 } from '../test-utils.js';
-import { fileURLToPath } from 'node:url';
-import { expect } from 'chai';
-import { createContainer } from '../../../dist/core/dev/container.js';
-import * as cheerio from 'cheerio';
-import testAdapter from '../../test-adapter.js';
 
-const root = new URL('../../fixtures/alias/', import.meta.url);
 const fileSystem = {
 	'/src/pages/[...testSlashTrim].astro': `
 	---
@@ -33,15 +32,14 @@ describe('Route sanitization', () => {
 	let settings;
 
 	before(async () => {
-		const fs = createFs(fileSystem, root);
+		const fixture = await createFixture(fileSystem);
 		settings = await createBasicSettings({
-			root: fileURLToPath(root),
+			root: fixture.path,
 			trailingSlash: 'never',
-			output: 'hybrid',
+			output: 'static',
 			adapter: testAdapter(),
 		});
 		container = await createContainer({
-			fs,
 			settings,
 			logger: defaultLogger,
 		});
@@ -60,7 +58,7 @@ describe('Route sanitization', () => {
 			container.handle(req, res);
 			const html = await text();
 			const $ = cheerio.load(html);
-			expect($('p').text()).to.equal('Success!');
+			assert.equal($('p').text(), 'Success!');
 		});
 	});
 });

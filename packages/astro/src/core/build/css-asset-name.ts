@@ -2,9 +2,11 @@ import type { GetModuleInfo, ModuleInfo } from 'rollup';
 
 import crypto from 'node:crypto';
 import npath from 'node:path';
-import type { AstroSettings } from '../../@types/astro.js';
+import { fileURLToPath } from 'node:url';
+import type { AstroSettings } from '../../types/astro.js';
 import { viteID } from '../util.js';
-import { getTopLevelPages } from './graph.js';
+import { normalizePath } from '../viteUtils.js';
+import { getTopLevelPageModuleInfos } from './graph.js';
 
 // These pages could be used as base names for the chunk hashed name, but they are confusing
 // and should be avoided it possible
@@ -13,19 +15,32 @@ const confusingBaseNames = ['404', '500'];
 // The short name for when the hash can be included
 // We could get rid of this and only use the createSlugger implementation, but this creates
 // slightly prettier names.
-export function shortHashedName(id: string, ctx: { getModuleInfo: GetModuleInfo }): string {
-	const parents = Array.from(getTopLevelPages(id, ctx));
-	return createNameHash(
-		getFirstParentId(parents),
-		parents.map(([page]) => page.id)
-	);
+export function shortHashedName(settings: AstroSettings) {
+	return function (id: string, ctx: { getModuleInfo: GetModuleInfo }): string {
+		const parents = getTopLevelPageModuleInfos(id, ctx);
+		return createNameHash(
+			getFirstParentId(parents),
+			parents.map((page) => page.id),
+			settings,
+		);
+	};
 }
 
-export function createNameHash(baseId: string | undefined, hashIds: string[]): string {
+export function createNameHash(
+	baseId: string | undefined,
+	hashIds: string[],
+	settings: AstroSettings,
+): string {
 	const baseName = baseId ? prettifyBaseName(npath.parse(baseId).name) : 'index';
 	const hash = crypto.createHash('sha256');
+	const root = fileURLToPath(settings.config.root);
+
 	for (const id of hashIds) {
-		hash.update(id, 'utf-8');
+		// Strip the project directory from the paths before they are hashed, so that assets
+		// that import these css files have consistent hashes when built in different environments.
+		const relativePath = npath.relative(root, id);
+		// Normalize the path to fix differences between windows and other environments
+		hash.update(normalizePath(relativePath), 'utf-8');
 	}
 	const h = hash.digest('hex').slice(0, 8);
 	const proposedName = baseName + '.' + h;
@@ -38,9 +53,9 @@ export function createSlugger(settings: AstroSettings) {
 	const map = new Map<string, Map<string, number>>();
 	const sep = '-';
 	return function (id: string, ctx: { getModuleInfo: GetModuleInfo }): string {
-		const parents = Array.from(getTopLevelPages(id, ctx));
+		const parents = Array.from(getTopLevelPageModuleInfos(id, ctx));
 		const allParentsKey = parents
-			.map(([page]) => page.id)
+			.map((page) => page.id)
 			.sort()
 			.join('-');
 		const firstParentId = getFirstParentId(parents) || indexPage;
@@ -90,9 +105,9 @@ export function createSlugger(settings: AstroSettings) {
  * Find the first parent id from `parents` where its name is not confusing.
  * Returns undefined if there's no parents.
  */
-function getFirstParentId(parents: [ModuleInfo, number, number][]) {
+function getFirstParentId(parents: ModuleInfo[]) {
 	for (const parent of parents) {
-		const id = parent[0].id;
+		const id = parent.id;
 		const baseName = npath.parse(id).name;
 		if (!confusingBaseNames.includes(baseName)) {
 			return id;
@@ -100,10 +115,10 @@ function getFirstParentId(parents: [ModuleInfo, number, number][]) {
 	}
 	// If all parents are confusing, just use the first one. Or if there's no
 	// parents, this will return undefined.
-	return parents[0]?.[0].id;
+	return parents[0]?.id;
 }
 
-const charsToReplaceRe = /[.\[\]]/g;
+const charsToReplaceRe = /[.[\]]/g;
 const underscoresRe = /_+/g;
 /**
  * Prettify base names so they're easier to read:

@@ -1,6 +1,6 @@
 import { runHighlighterWithAstro } from '@astrojs/prism/dist/highlighter';
 import { unescapeHTML } from 'astro/runtime/server/index.js';
-import { Markdoc, type AstroMarkdocConfig } from '../config.js';
+import { type AstroMarkdocConfig, Markdoc } from '../config.js';
 
 export default function prism(): AstroMarkdocConfig {
 	return {
@@ -12,7 +12,7 @@ export default function prism(): AstroMarkdocConfig {
 
 					// Use `unescapeHTML` to return `HTMLString` for Astro renderer to inline as HTML
 					return unescapeHTML(
-						`<pre class="${classLanguage}"><code class="${classLanguage}">${html}</code></pre>`
+						`<pre class="${classLanguage}"><code class="${classLanguage}">${html}</code></pre>`,
 					) as any;
 				},
 			},

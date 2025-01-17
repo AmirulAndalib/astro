@@ -1,18 +1,24 @@
-/* eslint-disable no-console */
-import * as colors from 'kleur/colors';
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { arch, platform } from 'node:os';
+import * as colors from 'kleur/colors';
 import prompts from 'prompts';
-import type yargs from 'yargs-parser';
 import { resolveConfig } from '../../core/config/index.js';
 import { ASTRO_VERSION } from '../../core/constants.js';
-import { flagsToAstroInlineConfig } from '../flags.js';
+import { apply as applyPolyfill } from '../../core/polyfill.js';
+import type { AstroConfig, AstroUserConfig } from '../../types/public/config.js';
+import { type Flags, flagsToAstroInlineConfig } from '../flags.js';
 
 interface InfoOptions {
-	flags: yargs.Arguments;
+	flags: Flags;
 }
 
-export async function printInfo({ flags }: InfoOptions) {
+export async function getInfoOutput({
+	userConfig,
+	print,
+}: {
+	userConfig: AstroUserConfig | AstroConfig;
+	print: boolean;
+}): Promise<string> {
 	const rows: Array<[string, string | string[]]> = [
 		['Astro', `v${ASTRO_VERSION}`],
 		['Node', process.version],
@@ -20,9 +26,7 @@ export async function printInfo({ flags }: InfoOptions) {
 		['Package Manager', getPackageManager()],
 	];
 
-	const inlineConfig = flagsToAstroInlineConfig(flags);
 	try {
-		const { userConfig } = await resolveConfig(inlineConfig, 'info');
 		rows.push(['Output', userConfig.output ?? 'static']);
 		rows.push(['Adapter', userConfig.adapter?.name ?? 'none']);
 		const integrations = (userConfig?.integrations ?? [])
@@ -35,48 +39,118 @@ export async function printInfo({ flags }: InfoOptions) {
 
 	let output = '';
 	for (const [label, value] of rows) {
-		output += printRow(label, value);
+		output += printRow(label, value, print);
 	}
 
-	await copyToClipboard(output.trim());
+	return output.trim();
 }
 
-async function copyToClipboard(text: string) {
+export async function printInfo({ flags }: InfoOptions) {
+	applyPolyfill();
+	const { userConfig } = await resolveConfig(flagsToAstroInlineConfig(flags), 'info');
+	const output = await getInfoOutput({ userConfig, print: true });
+	await copyToClipboard(output, flags.copy);
+}
+
+export async function copyToClipboard(text: string, force?: boolean) {
+	text = text.trim();
 	const system = platform();
 	let command = '';
+	let args: Array<string> = [];
+
 	if (system === 'darwin') {
 		command = 'pbcopy';
 	} else if (system === 'win32') {
 		command = 'clip';
 	} else {
-		// Unix: check if `xclip` is installed
-		const output = execSync('which xclip', { encoding: 'utf8' });
-		if (output[0] !== '/') {
-			// Did not find a path for xclip, bail out!
-			return;
+		// Unix: check if a supported command is installed
+
+		const unixCommands: Array<[string, Array<string>]> = [
+			['xclip', ['-selection', 'clipboard', '-l', '1']],
+			['wl-copy', []],
+		];
+		for (const [unixCommand, unixArgs] of unixCommands) {
+			try {
+				const output = spawnSync('which', [unixCommand], { encoding: 'utf8' });
+				if (output.stdout.trim()) {
+					command = unixCommand;
+					args = unixArgs;
+					break;
+				}
+			} catch {
+				continue;
+			}
 		}
-		command = 'xclip -sel clipboard -l 1';
 	}
 
-	console.log();
-	const { shouldCopy } = await prompts({
-		type: 'confirm',
-		name: 'shouldCopy',
-		message: 'Copy to clipboard?',
-		initial: true,
-	});
-	if (!shouldCopy) return;
+	if (!command) {
+		console.error(colors.red('\nClipboard command not found!'));
+		console.info('Please manually copy the text above.');
+		return;
+	}
+
+	if (!force) {
+		const { shouldCopy } = await prompts({
+			type: 'confirm',
+			name: 'shouldCopy',
+			message: 'Copy to clipboard?',
+			initial: true,
+		});
+
+		if (!shouldCopy) return;
+	}
 
 	try {
-		execSync(command, {
-			input: text.trim(),
-			encoding: 'utf8',
-		});
-	} catch (e) {
+		const result = spawnSync(command, args, { input: text, stdio: ['pipe', 'ignore', 'ignore'] });
+		if (result.error) {
+			throw result.error;
+		}
+		console.info(colors.green('Copied to clipboard!'));
+	} catch {
 		console.error(
-			colors.red(`\nSorry, something went wrong!`) + ` Please copy the text above manually.`
+			colors.red(`\nSorry, something went wrong!`) + ` Please copy the text above manually.`,
 		);
 	}
+}
+
+export function readFromClipboard() {
+	const system = platform();
+	let command = '';
+	let args: Array<string> = [];
+
+	if (system === 'darwin') {
+		command = 'pbpaste';
+	} else if (system === 'win32') {
+		command = 'powershell';
+		args = ['-command', 'Get-Clipboard'];
+	} else {
+		const unixCommands: Array<[string, Array<string>]> = [
+			['xclip', ['-sel', 'clipboard', '-o']],
+			['wl-paste', []],
+		];
+		for (const [unixCommand, unixArgs] of unixCommands) {
+			try {
+				const output = spawnSync('which', [unixCommand], { encoding: 'utf8' });
+				if (output.stdout.trim()) {
+					command = unixCommand;
+					args = unixArgs;
+					break;
+				}
+			} catch {
+				continue;
+			}
+		}
+	}
+
+	if (!command) {
+		throw new Error('Clipboard read command not found!');
+	}
+
+	const result = spawnSync(command, args, { encoding: 'utf8' });
+	if (result.error) {
+		throw result.error;
+	}
+	return result.stdout.trim();
 }
 
 const PLATFORM_TO_OS: Partial<Record<ReturnType<typeof platform>, string>> = {
@@ -100,7 +174,7 @@ function getPackageManager() {
 }
 
 const MAX_PADDING = 25;
-function printRow(label: string, value: string | string[]) {
+function printRow(label: string, value: string | string[], print: boolean) {
 	const padding = MAX_PADDING - label.length;
 	const [first, ...rest] = Array.isArray(value) ? value : [value];
 	let plaintext = `${label}${' '.repeat(padding)}${first}`;
@@ -112,6 +186,8 @@ function printRow(label: string, value: string | string[]) {
 		}
 	}
 	plaintext += '\n';
-	console.log(richtext);
+	if (print) {
+		console.info(richtext);
+	}
 	return plaintext;
 }

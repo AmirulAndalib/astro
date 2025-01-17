@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as colors from 'kleur/colors';
 import yargs from 'yargs-parser';
 import { ASTRO_VERSION } from '../core/constants.js';
@@ -7,13 +6,16 @@ type CLICommand =
 	| 'help'
 	| 'version'
 	| 'add'
+	| 'create-key'
 	| 'docs'
 	| 'dev'
 	| 'build'
 	| 'preview'
+	| 'db'
 	| 'sync'
 	| 'check'
 	| 'info'
+	| 'preferences'
 	| 'telemetry';
 
 /** Display --help flag */
@@ -28,12 +30,20 @@ async function printAstroHelp() {
 				['add', 'Add an integration.'],
 				['build', 'Build your project and write it to disk.'],
 				['check', 'Check your project for errors.'],
+				['create-key', 'Create a cryptography key'],
+				['db', 'Manage your Astro database.'],
 				['dev', 'Start the development server.'],
 				['docs', 'Open documentation in your web browser.'],
 				['info', 'List info about your current Astro setup.'],
 				['preview', 'Preview your build locally.'],
 				['sync', 'Generate content collection types.'],
+				['preferences', 'Configure user preferences.'],
 				['telemetry', 'Configure telemetry settings.'],
+			],
+			'Studio Commands': [
+				['login', 'Authenticate your machine with Astro Studio.'],
+				['logout', 'End your authenticated session with Astro Studio.'],
+				['link', 'Link this project directory to an Astro Studio project.'],
 			],
 			'Global Flags': [
 				['--config <path>', 'Specify your config file.'],
@@ -64,12 +74,19 @@ function resolveCommand(flags: yargs.Arguments): CLICommand {
 		'add',
 		'sync',
 		'telemetry',
+		'preferences',
 		'dev',
 		'build',
 		'preview',
 		'check',
+		'create-key',
 		'docs',
+		'db',
 		'info',
+		'login',
+		'logout',
+		'link',
+		'init',
 	]);
 	if (supportedCommands.has(cmd)) {
 		return cmd as CLICommand;
@@ -96,6 +113,11 @@ async function runCommand(cmd: string, flags: yargs.Arguments) {
 			await printInfo({ flags });
 			return;
 		}
+		case 'create-key': {
+			const { createKey } = await import('./create-key/index.js');
+			const exitCode = await createKey({ flags });
+			return process.exit(exitCode);
+		}
 		case 'docs': {
 			const { docs } = await import('./docs/index.js');
 			await docs({ flags });
@@ -111,7 +133,13 @@ async function runCommand(cmd: string, flags: yargs.Arguments) {
 		}
 		case 'sync': {
 			const { sync } = await import('./sync/index.js');
-			const exitCode = await sync({ flags });
+			await sync({ flags });
+			return;
+		}
+		case 'preferences': {
+			const { preferences } = await import('./preferences/index.js');
+			const [subcommand, key, value] = flags._.slice(3).map((v) => v.toString());
+			const exitCode = await preferences(subcommand, key, value, { flags });
 			return process.exit(exitCode);
 		}
 	}
@@ -120,11 +148,6 @@ async function runCommand(cmd: string, flags: yargs.Arguments) {
 	if (flags.verbose) {
 		const { enableVerboseLogging } = await import('../core/logger/node.js');
 		enableVerboseLogging();
-	}
-
-	// Start with a default NODE_ENV so Vite doesn't set an incorrect default when loading the Astro config
-	if (!process.env.NODE_ENV) {
-		process.env.NODE_ENV = cmd === 'dev' ? 'development' : 'production';
 	}
 
 	const { notify } = await import('./telemetry/index.js');
@@ -137,6 +160,15 @@ async function runCommand(cmd: string, flags: yargs.Arguments) {
 			const { add } = await import('./add/index.js');
 			const packages = flags._.slice(3) as string[];
 			await add(packages, { flags });
+			return;
+		}
+		case 'db':
+		case 'login':
+		case 'logout':
+		case 'link':
+		case 'init': {
+			const { db } = await import('./db/index.js');
+			await db({ flags });
 			return;
 		}
 		case 'dev': {
@@ -176,8 +208,8 @@ async function runCommand(cmd: string, flags: yargs.Arguments) {
 }
 
 /** The primary CLI action */
-export async function cli(args: string[]) {
-	const flags = yargs(args);
+export async function cli(argv: string[]) {
+	const flags = yargs(argv, { boolean: ['global'], alias: { g: 'global' } });
 	const cmd = resolveCommand(flags);
 	try {
 		await runCommand(cmd, flags);

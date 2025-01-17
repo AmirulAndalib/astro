@@ -1,5 +1,49 @@
 # @astrojs/alpinejs
 
+## 0.4.1
+
+### Patch Changes
+
+- [#12799](https://github.com/withastro/astro/pull/12799) [`739dbfb`](https://github.com/withastro/astro/commit/739dbfba4214107cf8fc40c702834dad33eed3b0) Thanks [@ascorbic](https://github.com/ascorbic)! - Upgrades Vite to pin esbuild
+
+## 0.4.0
+
+### Minor Changes
+
+- [#9751](https://github.com/withastro/astro/pull/9751) [`1153331cbbaa66a88645d15c6e949432210d4acc`](https://github.com/withastro/astro/commit/1153331cbbaa66a88645d15c6e949432210d4acc) Thanks [@florian-lefebvre](https://github.com/florian-lefebvre)! - Allows extending Alpine using the new `entrypoint` configuration
+
+  You can extend Alpine by setting the `entrypoint` option to a root-relative import specifier (for example, `entrypoint: "/src/entrypoint"`).
+
+  The default export of this file should be a function that accepts an Alpine instance prior to starting, allowing the use of custom directives, plugins and other customizations for advanced use cases.
+
+  ```js
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
+  import alpine from '@astrojs/alpinejs';
+
+  export default defineConfig({
+    // ...
+    integrations: [alpine({ entrypoint: '/src/entrypoint' })],
+  });
+  ```
+
+  ```js
+  // src/entrypoint.ts
+  import type { Alpine } from 'alpinejs'
+
+  export default (Alpine: Alpine) => {
+      Alpine.directive('foo', el => {
+          el.textContent = 'bar';
+      })
+  }
+  ```
+
+## 0.3.2
+
+### Patch Changes
+
+- [#9479](https://github.com/withastro/astro/pull/9479) [`1baf0b0d3cbd0564954c2366a7278794fad6726e`](https://github.com/withastro/astro/commit/1baf0b0d3cbd0564954c2366a7278794fad6726e) Thanks [@sarah11918](https://github.com/sarah11918)! - Updates README
+
 ## 0.3.1
 
 ### Patch Changes

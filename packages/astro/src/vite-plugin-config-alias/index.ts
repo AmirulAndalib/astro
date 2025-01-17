@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { CompilerOptions } from 'typescript';
-import { normalizePath, type ResolvedConfig, type Plugin as VitePlugin } from 'vite';
-import type { AstroSettings } from '../@types/astro.js';
+import { type ResolvedConfig, type Plugin as VitePlugin, normalizePath } from 'vite';
+import type { AstroSettings } from '../types/astro.js';
 
 type Alias = {
 	find: RegExp;
@@ -28,9 +28,9 @@ const getConfigAlias = (settings: AstroSettings): Alias[] | null => {
 			const find = new RegExp(
 				`^${[...alias]
 					.map((segment) =>
-						segment === '*' ? '(.+)' : segment.replace(/[\\^$*+?.()|[\]{}]/, '\\$&')
+						segment === '*' ? '(.+)' : segment.replace(/[\\^$*+?.()|[\]{}]/, '\\$&'),
 					)
-					.join('')}$`
+					.join('')}$`,
 			);
 
 			/** Internal index used to calculate the matching id in a replacement. */
@@ -84,6 +84,14 @@ export default function configAliasVitePlugin({
 			for (const alias of configAlias) {
 				if (alias.find.test(id)) {
 					const updatedId = id.replace(alias.find, alias.replacement);
+
+					// Vite may pass an id with "*" when resolving glob import paths
+					// Returning early allows Vite to handle the final resolution
+					// See https://github.com/withastro/astro/issues/9258#issuecomment-1838806157
+					if (updatedId.includes('*')) {
+						return updatedId;
+					}
+
 					const resolved = await this.resolve(updatedId, importer, { skipSelf: true, ...options });
 					if (resolved) return resolved;
 				}

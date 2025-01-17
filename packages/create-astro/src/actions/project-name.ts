@@ -1,13 +1,13 @@
 import type { Context } from './context.js';
 
-import { color, generateProjectName } from '@astrojs/cli-kit';
 import path from 'node:path';
+import { color, generateProjectName } from '@astrojs/cli-kit';
 import { info, log, title } from '../messages.js';
 
 import { isEmpty, toValidName } from './shared.js';
 
 export async function projectName(
-	ctx: Pick<Context, 'cwd' | 'yes' | 'dryRun' | 'prompt' | 'projectName' | 'exit'>
+	ctx: Pick<Context, 'cwd' | 'yes' | 'dryRun' | 'prompt' | 'projectName' | 'exit'>,
 ) {
 	await checkCwd(ctx.cwd);
 

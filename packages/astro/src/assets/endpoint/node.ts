@@ -1,23 +1,59 @@
-import { isRemotePath, removeQueryString } from '@astrojs/internal-helpers/path';
-import { readFile } from 'fs/promises';
-import mime from 'mime/lite.js';
-import type { APIRoute } from '../../@types/astro.js';
-import { getConfiguredImageService, isRemoteAllowed } from '../internal.js';
-import { etag } from '../utils/etag.js';
+import { readFile } from 'node:fs/promises';
+
+import os from 'node:os';
+import { isAbsolute } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 // @ts-expect-error
-import { assetsDir, imageConfig } from 'astro:assets';
+import { assetsDir, imageConfig, outDir } from 'astro:assets';
+import { isRemotePath, removeQueryString } from '@astrojs/internal-helpers/path';
+import * as mime from 'mrmime';
+import type { APIRoute } from '../../types/public/common.js';
+import { getConfiguredImageService } from '../internal.js';
+import { etag } from '../utils/etag.js';
+import { isRemoteAllowed } from '../utils/remotePattern.js';
+
+function replaceFileSystemReferences(src: string) {
+	return os.platform().includes('win32') ? src.replace(/^\/@fs\//, '') : src.replace(/^\/@fs/, '');
+}
 
 async function loadLocalImage(src: string, url: URL) {
-	const filePath = import.meta.env.DEV
-		? removeQueryString(src.slice('/@fs'.length))
-		: new URL('.' + src, assetsDir);
+	const assetsDirPath = fileURLToPath(assetsDir);
+
+	let fileUrl;
+	if (import.meta.env.DEV) {
+		fileUrl = pathToFileURL(removeQueryString(replaceFileSystemReferences(src)));
+	} else {
+		try {
+			// If the _image segment isn't at the start of the path, we have a base
+			const idx = url.pathname.indexOf('/_image');
+			if (idx > 0) {
+				// Remove the base path
+				src = src.slice(idx);
+			}
+			fileUrl = new URL('.' + src, outDir);
+			const filePath = fileURLToPath(fileUrl);
+
+			if (!isAbsolute(filePath) || !filePath.startsWith(assetsDirPath)) {
+				return undefined;
+			}
+		} catch {
+			return undefined;
+		}
+	}
+
 	let buffer: Buffer | undefined = undefined;
 
 	try {
-		buffer = await readFile(filePath);
-	} catch (e) {
-		const sourceUrl = new URL(src, url.origin);
-		buffer = await loadRemoteImage(sourceUrl);
+		buffer = await readFile(fileUrl);
+	} catch {
+		// Fallback to try to load the file using `fetch`
+		try {
+			const sourceUrl = new URL(src, url.origin);
+			buffer = await loadRemoteImage(sourceUrl);
+		} catch (err: unknown) {
+			console.error('Could not process image request:', err);
+			return undefined;
+		}
 	}
 
 	return buffer;
@@ -32,7 +68,7 @@ async function loadRemoteImage(src: URL) {
 		}
 
 		return Buffer.from(await res.arrayBuffer());
-	} catch (err: unknown) {
+	} catch {
 		return undefined;
 	}
 }
@@ -52,7 +88,11 @@ export const GET: APIRoute = async ({ request }) => {
 		const transform = await imageService.parseURL(url, imageConfig);
 
 		if (!transform?.src) {
-			throw new Error('Incorrect transform returned by `parseURL`');
+			const err = new Error(
+				'Incorrect transform returned by `parseURL`. Expected a transform with a `src` property.',
+			);
+			console.error('Could not parse image transform from URL:', err);
+			return new Response('Internal Server Error', { status: 500 });
 		}
 
 		let inputBuffer: Buffer | undefined = undefined;
@@ -68,7 +108,7 @@ export const GET: APIRoute = async ({ request }) => {
 		}
 
 		if (!inputBuffer) {
-			return new Response('Not Found', { status: 404 });
+			return new Response('Internal Server Error', { status: 500 });
 		}
 
 		const { data, format } = await imageService.transform(inputBuffer, transform, imageConfig);
@@ -76,13 +116,19 @@ export const GET: APIRoute = async ({ request }) => {
 		return new Response(data, {
 			status: 200,
 			headers: {
-				'Content-Type': mime.getType(format) ?? `image/${format}`,
+				'Content-Type': mime.lookup(format) ?? `image/${format}`,
 				'Cache-Control': 'public, max-age=31536000',
 				ETag: etag(data.toString()),
 				Date: new Date().toUTCString(),
 			},
 		});
 	} catch (err: unknown) {
-		return new Response(`Server Error: ${err}`, { status: 500 });
+		console.error('Could not process image request:', err);
+		return new Response(
+			import.meta.env.DEV ? `Could not process image request: ${err}` : `Internal Server Error`,
+			{
+				status: 500,
+			},
+		);
 	}
 };

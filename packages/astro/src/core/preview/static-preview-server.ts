@@ -1,9 +1,8 @@
 import type http from 'node:http';
+import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
-import { performance } from 'perf_hooks';
-import enableDestroy from 'server-destroy';
-import { preview, type PreviewServer as VitePreviewServer } from 'vite';
-import type { AstroSettings } from '../../@types/astro.js';
+import { type PreviewServer as VitePreviewServer, preview } from 'vite';
+import type { AstroSettings } from '../../types/astro.js';
 import type { Logger } from '../logger/core.js';
 import * as msg from '../messages.js';
 import { getResolvedHostForHttpServer } from './util.js';
@@ -19,7 +18,7 @@ export interface PreviewServer {
 
 export default async function createStaticPreviewServer(
 	settings: AstroSettings,
-	logger: Logger
+	logger: Logger,
 ): Promise<PreviewServer> {
 	const startServerTime = performance.now();
 
@@ -42,22 +41,20 @@ export default async function createStaticPreviewServer(
 		});
 	} catch (err) {
 		if (err instanceof Error) {
-			logger.error('astro', err.stack || err.message);
+			logger.error(null, err.stack || err.message);
 		}
 		throw err;
 	}
 
-	enableDestroy(previewServer.httpServer);
-
 	// Log server start URLs
 	logger.info(
-		null,
+		'SKIP_FORMAT',
 		msg.serverStart({
 			startupTime: performance.now() - startServerTime,
-			resolvedUrls: previewServer.resolvedUrls,
+			resolvedUrls: previewServer.resolvedUrls ?? { local: [], network: [] },
 			host: settings.config.server.host,
 			base: settings.config.base,
-		})
+		}),
 	);
 
 	// Resolves once the server is closed
@@ -72,11 +69,7 @@ export default async function createStaticPreviewServer(
 		host: getResolvedHostForHttpServer(settings.config.server.host),
 		port: settings.config.server.port,
 		closed,
-		server: previewServer.httpServer,
-		stop: async () => {
-			await new Promise((resolve, reject) => {
-				previewServer.httpServer.destroy((err) => (err ? reject(err) : resolve(undefined)));
-			});
-		},
+		server: previewServer.httpServer as http.Server,
+		stop: previewServer.close.bind(previewServer),
 	};
 }

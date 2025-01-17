@@ -1,70 +1,21 @@
-import type { Arguments as Flags } from 'yargs-parser';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as colors from 'kleur/colors';
+import { ZodError } from 'zod';
+import { eventConfigError, telemetry } from '../../events/index.js';
 import type {
 	AstroConfig,
 	AstroInlineConfig,
 	AstroInlineOnlyConfig,
 	AstroUserConfig,
-	CLIFlags,
-} from '../../@types/astro.js';
-
-import * as colors from 'kleur/colors';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { ZodError } from 'zod';
-import { eventConfigError, telemetry } from '../../events/index.js';
+} from '../../types/public/config.js';
 import { trackAstroConfigZodError } from '../errors/errors.js';
 import { AstroError, AstroErrorData } from '../errors/index.js';
 import { formatConfigErrorMessage } from '../messages.js';
 import { mergeConfig } from './merge.js';
-import { createRelativeSchema } from './schema.js';
+import { validateConfig } from './validate.js';
 import { loadConfigWithVite } from './vite-load.js';
-
-/** Turn raw config values into normalized values */
-export async function validateConfig(
-	userConfig: any,
-	root: string,
-	cmd: string
-): Promise<AstroConfig> {
-	const AstroConfigRelativeSchema = createRelativeSchema(cmd, root);
-
-	// First-Pass Validation
-	let result: AstroConfig;
-	try {
-		result = await AstroConfigRelativeSchema.parseAsync(userConfig);
-	} catch (e) {
-		// Improve config zod error messages
-		if (e instanceof ZodError) {
-			// Mark this error so the callee can decide to suppress Zod's error if needed.
-			// We still want to throw the error to signal an error in validation.
-			trackAstroConfigZodError(e);
-			// eslint-disable-next-line no-console
-			console.error(formatConfigErrorMessage(e) + '\n');
-			telemetry.record(eventConfigError({ cmd, err: e, isFatal: true }));
-		}
-		throw e;
-	}
-
-	// If successful, return the result as a verified AstroConfig object.
-	return result;
-}
-
-/** Convert the generic "yargs" flag object into our own, custom TypeScript object. */
-// NOTE: This function will be removed in a later PR. Use `flagsToAstroInlineConfig` instead.
-// All CLI related flow should be located in the `packages/astro/src/cli` directory.
-export function resolveFlags(flags: Partial<Flags>): CLIFlags {
-	return {
-		root: typeof flags.root === 'string' ? flags.root : undefined,
-		site: typeof flags.site === 'string' ? flags.site : undefined,
-		base: typeof flags.base === 'string' ? flags.base : undefined,
-		port: typeof flags.port === 'number' ? flags.port : undefined,
-		open: typeof flags.open === 'boolean' ? flags.open : undefined,
-		config: typeof flags.config === 'string' ? flags.config : undefined,
-		host:
-			typeof flags.host === 'string' || typeof flags.host === 'boolean' ? flags.host : undefined,
-		drafts: typeof flags.drafts === 'boolean' ? flags.drafts : undefined,
-	};
-}
 
 export function resolveRoot(cwd?: string | URL): string {
 	if (cwd instanceof URL) {
@@ -73,15 +24,19 @@ export function resolveRoot(cwd?: string | URL): string {
 	return cwd ? path.resolve(cwd) : process.cwd();
 }
 
+// Config paths to search for. In order of likely appearance
+// to speed up the check.
+export const configPaths = Object.freeze([
+	'astro.config.mjs',
+	'astro.config.js',
+	'astro.config.ts',
+	'astro.config.mts',
+	'astro.config.cjs',
+	'astro.config.cts',
+]);
+
 async function search(fsMod: typeof fs, root: string) {
-	const paths = [
-		'astro.config.mjs',
-		'astro.config.js',
-		'astro.config.ts',
-		'astro.config.mts',
-		'astro.config.cjs',
-		'astro.config.cts',
-	].map((p) => path.join(root, p));
+	const paths = configPaths.map((p) => path.join(root, p));
 
 	for (const file of paths) {
 		if (fsMod.existsSync(file)) {
@@ -92,7 +47,7 @@ async function search(fsMod: typeof fs, root: string) {
 
 interface ResolveConfigPathOptions {
 	root: string;
-	configFile?: string;
+	configFile?: string | false;
 	fs: typeof fs;
 }
 
@@ -100,7 +55,7 @@ interface ResolveConfigPathOptions {
  * Resolve the file URL of the user's `astro.config.js|cjs|mjs|ts` file
  */
 export async function resolveConfigPath(
-	options: ResolveConfigPathOptions
+	options: ResolveConfigPathOptions,
 ): Promise<string | undefined> {
 	let userConfigPath: string | undefined;
 	if (options.configFile) {
@@ -121,7 +76,7 @@ export async function resolveConfigPath(
 async function loadConfig(
 	root: string,
 	configFile?: string | false,
-	fsMod = fs
+	fsMod = fs,
 ): Promise<Record<string, any>> {
 	if (configFile === false) return {};
 
@@ -142,7 +97,6 @@ async function loadConfig(
 	} catch (e) {
 		const configPathText = configFile ? colors.bold(configFile) : 'your Astro config';
 		// Config errors should bypass log level as it breaks startup
-		// eslint-disable-next-line no-console
 		console.error(`${colors.bold(colors.red('[astro]'))} Unable to load ${configPathText}\n`);
 		throw e;
 	}
@@ -181,7 +135,7 @@ interface ResolveConfigResult {
 export async function resolveConfig(
 	inlineConfig: AstroInlineConfig,
 	command: string,
-	fsMod = fs
+	fsMod = fs,
 ): Promise<ResolveConfigResult> {
 	const root = resolveRoot(inlineConfig.root);
 	const { inlineUserConfig, inlineOnlyConfig } = splitInlineConfig(inlineConfig);
@@ -193,7 +147,21 @@ export async function resolveConfig(
 
 	const userConfig = await loadConfig(root, inlineOnlyConfig.configFile, fsMod);
 	const mergedConfig = mergeConfig(userConfig, inlineUserConfig);
-	const astroConfig = await validateConfig(mergedConfig, root, command);
+	// First-Pass Validation
+	let astroConfig: AstroConfig;
+	try {
+		astroConfig = await validateConfig(mergedConfig, root, command);
+	} catch (e) {
+		// Improve config zod error messages
+		if (e instanceof ZodError) {
+			// Mark this error so the callee can decide to suppress Zod's error if needed.
+			// We still want to throw the error to signal an error in validation.
+			trackAstroConfigZodError(e);
+			console.error(formatConfigErrorMessage(e) + '\n');
+			telemetry.record(eventConfigError({ cmd: command, err: e, isFatal: true }));
+		}
+		throw e;
+	}
 
-	return { userConfig, astroConfig };
+	return { userConfig: mergedConfig, astroConfig };
 }

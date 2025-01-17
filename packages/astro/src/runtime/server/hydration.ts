@@ -1,10 +1,10 @@
+import { AstroError, AstroErrorData } from '../../core/errors/index.js';
 import type {
 	AstroComponentMetadata,
 	SSRElement,
 	SSRLoadedRenderer,
 	SSRResult,
-} from '../../@types/astro.js';
-import { AstroError, AstroErrorData } from '../../core/errors/index.js';
+} from '../../types/public/internal.js';
 import { escapeHTML } from './escape.js';
 import { serializeProps } from './serialize.js';
 
@@ -27,13 +27,14 @@ interface ExtractedProps {
 const transitionDirectivesToCopyOnIsland = Object.freeze([
 	'data-astro-transition-scope',
 	'data-astro-transition-persist',
+	'data-astro-transition-persist-props',
 ]);
 
 // Used to extract the directives, aka `client:load` information about a component.
 // Finds these special props and removes them from what gets passed into the component.
 export function extractDirectives(
 	inputProps: Props,
-	clientDirectives: SSRResult['clientDirectives']
+	clientDirectives: SSRResult['clientDirectives'],
 ): ExtractedProps {
 	let extracted: ExtractedProps = {
 		isPage: false,
@@ -83,7 +84,7 @@ export function extractDirectives(
 							.map((d) => `client:${d}`)
 							.join(', ');
 						throw new Error(
-							`Error: invalid hydration directive "${key}". Supported hydration methods: ${hydrationMethods}`
+							`Error: invalid hydration directive "${key}". Supported hydration methods: ${hydrationMethods}`,
 						);
 					}
 
@@ -124,7 +125,7 @@ interface HydrateScriptOptions {
 /** For hydrated components, generate a <script type="module"> to load the component */
 export async function generateHydrateScript(
 	scriptOptions: HydrateScriptOptions,
-	metadata: Required<AstroComponentMetadata>
+	metadata: Required<AstroComponentMetadata>,
 ): Promise<SSRElement> {
 	const { renderer, result, astroId, props, attrs } = scriptOptions;
 	const { hydrate, componentUrl, componentExport } = metadata;
@@ -157,7 +158,9 @@ export async function generateHydrateScript(
 	// Add renderer url
 	if (renderer.clientEntrypoint) {
 		island.props['component-export'] = componentExport.value;
-		island.props['renderer-url'] = await result.resolve(decodeURI(renderer.clientEntrypoint));
+		island.props['renderer-url'] = await result.resolve(
+			decodeURI(renderer.clientEntrypoint.toString()),
+		);
 		island.props['props'] = escapeHTML(serializeProps(props, metadata));
 	}
 
@@ -171,11 +174,11 @@ export async function generateHydrateScript(
 		JSON.stringify({
 			name: metadata.displayName,
 			value: metadata.hydrateArgs || '',
-		})
+		}),
 	);
 
 	transitionDirectivesToCopyOnIsland.forEach((name) => {
-		if (props[name]) {
+		if (typeof props[name] !== 'undefined') {
 			island.props[name] = props[name];
 		}
 	});

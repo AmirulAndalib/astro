@@ -30,7 +30,7 @@ export function vitePluginRenderers(opts: StaticBuildOptions): VitePlugin {
 
 					for (const renderer of opts.settings.renderers) {
 						const variable = `_renderer${i}`;
-						imports.push(`import ${variable} from '${renderer.serverEntrypoint}';`);
+						imports.push(`import ${variable} from ${JSON.stringify(renderer.serverEntrypoint)};`);
 						rendererItems += `Object.assign(${JSON.stringify(renderer)}, { ssr: ${variable} }),`;
 						i++;
 					}
@@ -48,7 +48,7 @@ export function vitePluginRenderers(opts: StaticBuildOptions): VitePlugin {
 
 export function pluginRenderers(opts: StaticBuildOptions): AstroBuildPlugin {
 	return {
-		build: 'ssr',
+		targets: ['server'],
 		hooks: {
 			'build:before': () => {
 				return {

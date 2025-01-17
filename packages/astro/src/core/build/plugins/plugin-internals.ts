@@ -36,7 +36,7 @@ export function vitePluginInternals(input: Set<string>, internals: BuildInternal
 								mapping.set(result.id, new Set<string>([specifier]));
 							}
 						}
-					})
+					}),
 				);
 			}
 			await Promise.all(promises);
@@ -46,13 +46,6 @@ export function vitePluginInternals(input: Set<string>, internals: BuildInternal
 					for (const specifier of specifiers) {
 						internals.entrySpecifierToBundleMap.set(normalizeEntryId(specifier), chunk.fileName);
 					}
-				} else if (chunk.type === 'chunk') {
-					for (const id of Object.keys(chunk.modules)) {
-						const pageData = internals.pagesByViteID.get(id);
-						if (pageData) {
-							internals.pageToBundleMap.set(pageData.moduleSpecifier, chunk.fileName);
-						}
-					}
 				}
 			}
 		},
@@ -61,7 +54,7 @@ export function vitePluginInternals(input: Set<string>, internals: BuildInternal
 
 export function pluginInternals(internals: BuildInternals): AstroBuildPlugin {
 	return {
-		build: 'both',
+		targets: ['client', 'server'],
 		hooks: {
 			'build:before': ({ input }) => {
 				return {

@@ -1,6 +1,6 @@
 import type { YAMLException } from 'js-yaml';
 import type { ErrorPayload as ViteErrorPayload } from 'vite';
-import type { SSRError } from '../../@types/astro.js';
+import type { SSRError } from '../../types/public/internal.js';
 
 /**
  * Get the line and character based on the offset
@@ -9,7 +9,7 @@ import type { SSRError } from '../../@types/astro.js';
  */
 export function positionAt(
 	offset: number,
-	text: string
+	text: string,
 ): {
 	line: number;
 	column: number;
@@ -93,9 +93,8 @@ export function createSafeError(err: any): Error {
 	} else {
 		const error = new Error(JSON.stringify(err));
 
-		(
-			error as SSRError
-		).hint = `To get as much information as possible from your errors, make sure to throw Error objects instead of \`${typeof err}\`. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error for more information.`;
+		(error as SSRError).hint =
+			`To get as much information as possible from your errors, make sure to throw Error objects instead of \`${typeof err}\`. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error for more information.`;
 
 		return error;
 	}

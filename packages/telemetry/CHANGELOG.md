@@ -1,5 +1,33 @@
 # @astrojs/telemetry
 
+## 3.2.0
+
+### Minor Changes
+
+- [#12539](https://github.com/withastro/astro/pull/12539) [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7) Thanks [@bluwy](https://github.com/bluwy)! - Drops node 21 support
+
+## 3.2.0-beta.0
+
+### Minor Changes
+
+- [#12539](https://github.com/withastro/astro/pull/12539) [`827093e`](https://github.com/withastro/astro/commit/827093e6175549771f9d93ddf3f2be4c2c60f0b7) Thanks [@bluwy](https://github.com/bluwy)! - Drops node 21 support
+
+## 3.1.0
+
+### Minor Changes
+
+- [#10689](https://github.com/withastro/astro/pull/10689) [`683d51a5eecafbbfbfed3910a3f1fbf0b3531b99`](https://github.com/withastro/astro/commit/683d51a5eecafbbfbfed3910a3f1fbf0b3531b99) Thanks [@ematipico](https://github.com/ematipico)! - Deprecate support for versions of Node.js older than `v18.17.1` for Node.js 18, older than `v20.0.3` for Node.js 20, and the complete Node.js v19 release line.
+
+  This change is in line with Astro's [Node.js support policy](https://docs.astro.build/en/upgrade-astro/#support).
+
+## 3.0.4
+
+### Patch Changes
+
+- [#8900](https://github.com/withastro/astro/pull/8900) [`341ef6578`](https://github.com/withastro/astro/commit/341ef6578528a00f89bf6da5e4243b0fde272816) Thanks [@FredKSchott](https://github.com/FredKSchott)! - Track if the Astro CLI is running in a [`TTY`](nodejs.org/api/process.html#a-note-on-process-io) context.
+
+  This information helps us better understand scripted use of Astro vs. direct terminal use of Astro CLI by a user, especially the `astro dev` command.
+
 ## 3.0.3
 
 ### Patch Changes

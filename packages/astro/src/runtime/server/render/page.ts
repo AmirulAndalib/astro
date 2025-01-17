@@ -1,10 +1,11 @@
-import type { RouteData, SSRResult } from '../../../@types/astro.js';
-import { renderComponentToString, type NonAstroPageComponent } from './component.js';
+import { type NonAstroPageComponent, renderComponentToString } from './component.js';
 import type { AstroComponentFactory } from './index.js';
 
+import type { RouteData, SSRResult } from '../../../types/public/internal.js';
 import { isAstroComponentFactory } from './astro/index.js';
-import { renderToReadableStream, renderToString } from './astro/render.js';
+import { renderToAsyncIterable, renderToReadableStream, renderToString } from './astro/render.js';
 import { encoder } from './common.js';
+import { isDeno, isNode } from './util.js';
 
 export async function renderPage(
 	result: SSRResult,
@@ -12,7 +13,7 @@ export async function renderPage(
 	props: any,
 	children: any,
 	streaming: boolean,
-	route?: RouteData
+	route?: RouteData,
 ): Promise<Response> {
 	if (!isAstroComponentFactory(componentFactory)) {
 		result._metadata.headInTree =
@@ -25,16 +26,16 @@ export async function renderPage(
 			componentFactory.name,
 			componentFactory,
 			pageProps,
-			null,
+			{},
 			true,
-			route
+			route,
 		);
 
 		const bytes = encoder.encode(str);
 
 		return new Response(bytes, {
 			headers: new Headers([
-				['Content-Type', 'text/html; charset=utf-8'],
+				['Content-Type', 'text/html'],
 				['Content-Length', bytes.byteLength.toString()],
 			]),
 		});
@@ -47,7 +48,23 @@ export async function renderPage(
 
 	let body: BodyInit | Response;
 	if (streaming) {
-		body = await renderToReadableStream(result, componentFactory, props, children, true, route);
+		// isNode is true in Deno node-compat mode but response construction from
+		// async iterables is not supported, so we fallback to ReadableStream if isDeno is true.
+		if (isNode && !isDeno) {
+			const nodeBody = await renderToAsyncIterable(
+				result,
+				componentFactory,
+				props,
+				children,
+				true,
+				route,
+			);
+			// Node.js allows passing in an AsyncIterable to the Response constructor.
+			// This is non-standard so using `any` here to preserve types everywhere else.
+			body = nodeBody as any;
+		} else {
+			body = await renderToReadableStream(result, componentFactory, props, children, true, route);
+		}
 	} else {
 		body = await renderToString(result, componentFactory, props, children, true, route);
 	}
@@ -63,11 +80,16 @@ export async function renderPage(
 		body = encoder.encode(body);
 		headers.set('Content-Length', body.byteLength.toString());
 	}
-	// TODO: Revisit if user should manually set charset by themselves in Astro 4
-	// This code preserves the existing behaviour for markdown pages since Astro 2
-	if (route?.component.endsWith('.md')) {
-		headers.set('Content-Type', 'text/html; charset=utf-8');
+	let status = init.status;
+	// Custom 404.astro and 500.astro are particular routes that must return a fixed status code
+	if (route?.route === '/404') {
+		status = 404;
+	} else if (route?.route === '/500') {
+		status = 500;
 	}
-	const response = new Response(body, { ...init, headers });
-	return response;
+	if (status) {
+		return new Response(body, { ...init, headers, status });
+	} else {
+		return new Response(body, { ...init, headers });
+	}
 }

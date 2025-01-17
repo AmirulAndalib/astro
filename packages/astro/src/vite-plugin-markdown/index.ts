@@ -1,71 +1,50 @@
-import {
-	createMarkdownProcessor,
-	InvalidAstroDataError,
-	type MarkdownProcessor,
-} from '@astrojs/markdown-remark';
-import matter from 'gray-matter';
 import fs from 'node:fs';
-import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+	type MarkdownProcessor,
+	createMarkdownProcessor,
+	isFrontmatterValid,
+} from '@astrojs/markdown-remark';
 import type { Plugin } from 'vite';
-import { normalizePath } from 'vite';
-import type { AstroSettings } from '../@types/astro.js';
-import { AstroError, AstroErrorData, MarkdownError } from '../core/errors/index.js';
+import { safeParseFrontmatter } from '../content/utils.js';
+import { AstroError, AstroErrorData } from '../core/errors/index.js';
 import type { Logger } from '../core/logger/core.js';
-import { isMarkdownFile } from '../core/util.js';
+import { isMarkdownFile, isPage } from '../core/util.js';
+import { normalizePath } from '../core/viteUtils.js';
 import { shorthash } from '../runtime/server/shorthash.js';
-import type { PluginMetadata } from '../vite-plugin-astro/types.js';
-import { escapeViteEnvReferences, getFileInfo } from '../vite-plugin-utils/index.js';
-import { getMarkdownCodeForImages, type MarkdownImagePath } from './images.js';
+import type { AstroSettings } from '../types/astro.js';
+import { createDefaultAstroMetadata } from '../vite-plugin-astro/metadata.js';
+import { getFileInfo } from '../vite-plugin-utils/index.js';
+import { type MarkdownImagePath, getMarkdownCodeForImages } from './images.js';
 
 interface AstroPluginOptions {
 	settings: AstroSettings;
 	logger: Logger;
 }
 
-function safeMatter(source: string, id: string) {
-	try {
-		return matter(source);
-	} catch (err: any) {
-		const markdownError = new MarkdownError({
-			name: 'MarkdownError',
-			message: err.message,
-			stack: err.stack,
-			location: {
-				file: id,
-			},
-		});
-
-		if (err.name === 'YAMLException') {
-			markdownError.setLocation({
-				file: id,
-				line: err.mark.line,
-				column: err.mark.column,
-			});
-
-			markdownError.setMessage(err.reason);
-		}
-
-		throw markdownError;
-	}
-}
-
 const astroServerRuntimeModulePath = normalizePath(
-	fileURLToPath(new URL('../runtime/server/index.js', import.meta.url))
+	fileURLToPath(new URL('../runtime/server/index.js', import.meta.url)),
 );
 
 const astroErrorModulePath = normalizePath(
-	fileURLToPath(new URL('../core/errors/index.js', import.meta.url))
+	fileURLToPath(new URL('../core/errors/index.js', import.meta.url)),
 );
 
 export default function markdown({ settings, logger }: AstroPluginOptions): Plugin {
-	let processor: MarkdownProcessor;
+	let processor: Promise<MarkdownProcessor> | undefined;
 
 	return {
 		enforce: 'pre',
 		name: 'astro:markdown',
-		async buildStart() {
-			processor = await createMarkdownProcessor(settings.config.markdown);
+		buildEnd() {
+			processor = undefined;
+		},
+		async resolveId(source, importer, options) {
+			if (importer?.endsWith('.md') && source[0] !== '/') {
+				let resolved = await this.resolve(source, importer, options);
+				if (!resolved) resolved = await this.resolve('./' + source, importer, options);
+				return resolved;
+			}
 		},
 		// Why not the "transform" hook instead of "load" + readFile?
 		// A: Vite transforms all "import.meta.env" references to their values before
@@ -75,33 +54,38 @@ export default function markdown({ settings, logger }: AstroPluginOptions): Plug
 			if (isMarkdownFile(id)) {
 				const { fileId, fileUrl } = getFileInfo(id, settings.config);
 				const rawFile = await fs.promises.readFile(fileId, 'utf-8');
-				const raw = safeMatter(rawFile, id);
+				const raw = safeParseFrontmatter(rawFile, id);
 
 				const fileURL = pathToFileURL(fileId);
 
-				const renderResult = await processor
-					.render(raw.content, {
-						fileURL,
-						frontmatter: raw.data,
-					})
-					.catch((err) => {
-						// Improve error message for invalid astro data
-						if (err instanceof InvalidAstroDataError) {
-							throw new AstroError(AstroErrorData.InvalidFrontmatterInjectionError);
-						}
-						throw err;
-					});
+				// Lazily initialize the Markdown processor
+				if (!processor) {
+					processor = createMarkdownProcessor(settings.config.markdown);
+				}
+
+				const renderResult = await (await processor).render(raw.content, {
+					// @ts-expect-error passing internal prop
+					fileURL,
+					frontmatter: raw.frontmatter,
+				});
+
+				// Improve error message for invalid astro frontmatter
+				if (!isFrontmatterValid(renderResult.metadata.frontmatter)) {
+					throw new AstroError(AstroErrorData.InvalidFrontmatterInjectionError);
+				}
 
 				let html = renderResult.code;
 				const { headings, imagePaths: rawImagePaths, frontmatter } = renderResult.metadata;
 
+				// Add default charset for markdown pages
+				const isMarkdownPage = isPage(fileURL, settings);
+				const charset = isMarkdownPage ? '<meta charset="utf-8">' : '';
+
 				// Resolve all the extracted images from the content
 				const imagePaths: MarkdownImagePath[] = [];
-				for (const imagePath of rawImagePaths.values()) {
+				for (const imagePath of rawImagePaths) {
 					imagePaths.push({
 						raw: imagePath,
-						resolved:
-							(await this.resolve(imagePath, id))?.id ?? path.join(path.dirname(id), imagePath),
 						safeName: shorthash(imagePath),
 					});
 				}
@@ -111,13 +95,13 @@ export default function markdown({ settings, logger }: AstroPluginOptions): Plug
 				if (frontmatter.setup) {
 					logger.warn(
 						'markdown',
-						`[${id}] Astro now supports MDX! Support for components in ".md" (or alternative extensions like ".markdown") files using the "setup" frontmatter is no longer enabled by default. Migrate this file to MDX.`
+						`[${id}] Astro now supports MDX! Support for components in ".md" (or alternative extensions like ".markdown") files using the "setup" frontmatter is no longer enabled by default. Migrate this file to MDX.`,
 					);
 				}
 
-				const code = escapeViteEnvReferences(`
+				const code = `
 				import { unescapeHTML, spreadAttributes, createComponent, render, renderComponent, maybeRenderHead } from ${JSON.stringify(
-					astroServerRuntimeModulePath
+					astroServerRuntimeModulePath,
 				)};
 				import { AstroError, AstroErrorData } from ${JSON.stringify(astroErrorModulePath)};
 				${layout ? `import Layout from ${JSON.stringify(layout)};` : ''}
@@ -126,7 +110,7 @@ export default function markdown({ settings, logger }: AstroPluginOptions): Plug
 					// Only include the code relevant to `astro:assets` if there's images in the file
 					imagePaths.length > 0
 						? getMarkdownCodeForImages(imagePaths, html)
-						: `const html = ${JSON.stringify(html)};`
+						: `const html = () => ${JSON.stringify(html)};`
 				}
 
 				export const frontmatter = ${JSON.stringify(frontmatter)};
@@ -135,8 +119,8 @@ export default function markdown({ settings, logger }: AstroPluginOptions): Plug
 				export function rawContent() {
 					return ${JSON.stringify(raw.content)};
 				}
-				export function compiledContent() {
-					return html;
+				export async function compiledContent() {
+					return await html();
 				}
 				export function getHeadings() {
 					return ${JSON.stringify(headings)};
@@ -159,25 +143,18 @@ export default function markdown({ settings, logger }: AstroPluginOptions): Plug
 								compiledContent,
 								'server:root': true,
 							}, {
-								'default': () => render\`\${unescapeHTML(html)}\`
+								'default': () => render\`\${unescapeHTML(html())}\`
 							})}\`;`
-							: `render\`\${maybeRenderHead(result)}\${unescapeHTML(html)}\`;`
+							: `render\`${charset}\${maybeRenderHead(result)}\${unescapeHTML(html())}\`;`
 					}
 				});
 				export default Content;
-				`);
+				`;
 
 				return {
 					code,
 					meta: {
-						astro: {
-							hydratedComponents: [],
-							clientOnlyComponents: [],
-							scripts: [],
-							propagation: 'none',
-							containsHead: false,
-							pageOptions: {},
-						} as PluginMetadata['astro'],
+						astro: createDefaultAstroMetadata(),
 						vite: {
 							lang: 'ts',
 						},

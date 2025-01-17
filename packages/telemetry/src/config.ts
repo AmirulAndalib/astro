@@ -1,10 +1,9 @@
-import dget from 'dlv';
-// @ts-expect-error `dset` is mispackaged: https://publint.dev/dset@3.1.2
-import { dset } from 'dset';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import dget from 'dlv';
+import { dset } from 'dset';
 
 export interface ConfigOptions {
 	name: string;
@@ -22,6 +21,7 @@ function getConfigDir(name: string) {
 		const { XDG_CONFIG_HOME = path.join(homedir, '.config') } = process.env;
 		return path.join(XDG_CONFIG_HOME, name);
 	};
+	// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 	switch (process.platform) {
 		case 'darwin':
 			return macos();

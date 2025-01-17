@@ -1,6 +1,6 @@
-import { preact, type PreactPluginOptions as VitePreactPluginOptions } from '@preact/preset-vite';
-import type { AstroIntegration, AstroRenderer, ViteUserConfig } from 'astro';
 import { fileURLToPath } from 'node:url';
+import { type PreactPluginOptions as VitePreactPluginOptions, preact } from '@preact/preset-vite';
+import type { AstroIntegration, AstroRenderer, ContainerRenderer, ViteUserConfig } from 'astro';
 
 const babelCwd = new URL('../', import.meta.url);
 
@@ -12,14 +12,25 @@ function getRenderer(development: boolean): AstroRenderer {
 	};
 }
 
-export type Options = Pick<VitePreactPluginOptions, 'include' | 'exclude'> & { compat?: boolean };
+export function getContainerRenderer(): ContainerRenderer {
+	return {
+		name: '@astrojs/preact',
+		serverEntrypoint: '@astrojs/preact/server.js',
+	};
+}
 
-export default function ({ include, exclude, compat }: Options = {}): AstroIntegration {
+export interface Options extends Pick<VitePreactPluginOptions, 'include' | 'exclude'> {
+	compat?: boolean;
+	devtools?: boolean;
+}
+
+export default function ({ include, exclude, compat, devtools }: Options = {}): AstroIntegration {
 	return {
 		name: '@astrojs/preact',
 		hooks: {
-			'astro:config:setup': ({ addRenderer, updateConfig, command }) => {
+			'astro:config:setup': ({ addRenderer, updateConfig, command, injectScript }) => {
 				const preactPlugin = preact({
+					reactAliasesEnabled: compat ?? false,
 					include,
 					exclude,
 					babel: {
@@ -34,20 +45,13 @@ export default function ({ include, exclude, compat }: Options = {}): AstroInteg
 					},
 				};
 
-				// If not compat, delete the plugin that does it
-				if (!compat) {
-					const pIndex = preactPlugin.findIndex((p) => p.name == 'preact:config');
-					if (pIndex >= 0) {
-						preactPlugin.splice(pIndex, 1);
-					}
-				} else {
+				if (compat) {
 					viteConfig.optimizeDeps!.include!.push(
 						'preact/compat',
 						'preact/test-utils',
-						'preact/compat/jsx-runtime'
+						'preact/compat/jsx-runtime',
 					);
 					viteConfig.resolve = {
-						alias: [{ find: 'react/jsx-runtime', replacement: 'preact/jsx-runtime' }],
 						dedupe: ['preact/compat', 'preact'],
 					};
 					// noExternal React entrypoints to be bundled, resolved, and aliased by Vite
@@ -62,6 +66,22 @@ export default function ({ include, exclude, compat }: Options = {}): AstroInteg
 				updateConfig({
 					vite: viteConfig,
 				});
+
+				if (command === 'dev' && devtools) {
+					injectScript('page', 'import "preact/debug";');
+				}
+			},
+			'astro:config:done': ({ logger, config }) => {
+				const knownJsxRenderers = ['@astrojs/react', '@astrojs/preact', '@astrojs/solid-js'];
+				const enabledKnownJsxRenderers = config.integrations.filter((renderer) =>
+					knownJsxRenderers.includes(renderer.name),
+				);
+
+				if (enabledKnownJsxRenderers.length > 1 && !include && !exclude) {
+					logger.warn(
+						'More than one JSX renderer is enabled. This will lead to unexpected behavior unless you set the `include` or `exclude` option. See https://docs.astro.build/en/guides/integrations-guide/preact/#combining-multiple-jsx-frameworks for more information.',
+					);
+				}
 			},
 		},
 	};

@@ -1,15 +1,15 @@
 import type { ModuleInfo } from 'rollup';
 import type * as vite from 'vite';
-import type { SSRComponentMetadata, SSRResult } from '../@types/astro.js';
 import type { AstroBuildPlugin } from '../core/build/plugin.js';
 import type { PluginMetadata } from '../vite-plugin-astro/types.js';
 
-import { getTopLevelPages, walkParentInfos } from '../core/build/graph.js';
+import { getParentModuleInfos, getTopLevelPageModuleInfos } from '../core/build/graph.js';
 import type { BuildInternals } from '../core/build/internal.js';
+import type { SSRComponentMetadata, SSRResult } from '../types/public/internal.js';
 import { getAstroMetadata } from '../vite-plugin-astro/index.js';
 
 // Detect this in comments, both in .astro components and in js/ts files.
-const injectExp = /(^\/\/|\/\/!)\s*astro-head-inject/;
+const injectExp = /(?:^\/\/|\/\/!)\s*astro-head-inject/;
 
 export default function configHeadVitePlugin(): vite.Plugin {
 	let server: vite.ViteDevServer;
@@ -22,7 +22,7 @@ export default function configHeadVitePlugin(): vite.Plugin {
 		id: string,
 		prop: P,
 		value: V,
-		seen = new Set<string>()
+		seen = new Set<string>(),
 	) {
 		if (seen.has(id)) return;
 		seen.add(id);
@@ -103,7 +103,7 @@ export default function configHeadVitePlugin(): vite.Plugin {
 
 export function astroHeadBuildPlugin(internals: BuildInternals): AstroBuildPlugin {
 	return {
-		build: 'ssr',
+		targets: ['server'],
 		hooks: {
 			'build:before'() {
 				return {
@@ -130,13 +130,13 @@ export function astroHeadBuildPlugin(internals: BuildInternals): AstroBuildPlugi
 									if (modinfo) {
 										const meta = getAstroMetadata(modinfo);
 										if (meta?.containsHead) {
-											for (const [pageInfo] of getTopLevelPages(id, this)) {
+											for (const pageInfo of getTopLevelPageModuleInfos(id, this)) {
 												let metadata = getOrCreateMetadata(pageInfo.id);
 												metadata.containsHead = true;
 											}
 										}
 										if (meta?.propagation === 'self') {
-											for (const [info] of walkParentInfos(id, this)) {
+											for (const info of getParentModuleInfos(id, this)) {
 												let metadata = getOrCreateMetadata(info.id);
 												if (metadata.propagation !== 'self') {
 													metadata.propagation = 'in-tree';
@@ -147,7 +147,7 @@ export function astroHeadBuildPlugin(internals: BuildInternals): AstroBuildPlugi
 
 									// Head propagation (aka bubbling)
 									if (mod.code && injectExp.test(mod.code)) {
-										for (const [info] of walkParentInfos(id, this)) {
+										for (const info of getParentModuleInfos(id, this)) {
 											getOrCreateMetadata(info.id).propagation = 'in-tree';
 										}
 									}

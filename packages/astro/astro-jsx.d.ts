@@ -1,5 +1,4 @@
 /// <reference lib="dom" />
-/* eslint @typescript-eslint/no-unused-vars: off */
 /**
  * Adapted from babel-plugin-react-html-attrs's TypeScript definition from DefinitelyTyped.
  * @see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/babel-plugin-react-html-attrs/index.d.ts
@@ -9,33 +8,29 @@
  * Adapted from React’s TypeScript definition from DefinitelyTyped.
  * @see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/index.d.ts
  */
-// BUG! Prettier 3.0 removes `declare`: https://github.com/prettier/prettier/issues/15207
-// prettier-ignore
 declare namespace astroHTML.JSX {
 	export type Child = Node | Node[] | string | number | boolean | null | undefined | unknown;
 	export type Children = Child | Child[];
 
 	interface ElementChildrenAttribute {
-		// eslint-disable-next-line @typescript-eslint/ban-types
 		children: {};
 	}
 
-	interface IntrinsicAttributes
-		extends AstroBuiltinProps,
-			AstroBuiltinAttributes,
-			AstroClientDirectives {
-		slot?: string;
+	interface IntrinsicAttributes extends AstroComponentDirectives, AstroBuiltinAttributes {
+		slot?: string | undefined | null;
 		children?: Children;
 	}
 
-	type AstroBuiltinProps = import('./dist/@types/astro.js').AstroBuiltinProps;
-	type AstroClientDirectives = import('./dist/@types/astro.js').AstroClientDirectives;
-	type AstroBuiltinAttributes = import('./dist/@types/astro.js').AstroBuiltinAttributes;
-	type AstroDefineVarsAttribute = import('./dist/@types/astro.js').AstroDefineVarsAttribute;
-	type AstroScriptAttributes = import('./dist/@types/astro.js').AstroScriptAttributes &
+	type AstroComponentDirectives =
+		import('./dist/types/public/elements.js').AstroComponentDirectives;
+	type AstroBuiltinAttributes = import('./dist/types/public/elements.js').AstroBuiltinAttributes;
+	type AstroDefineVarsAttribute =
+		import('./dist/types/public/elements.js').AstroDefineVarsAttribute;
+	type AstroScriptAttributes = import('./dist/types/public/elements.js').AstroScriptAttributes &
 		AstroDefineVarsAttribute;
-	type AstroStyleAttributes = import('./dist/@types/astro.js').AstroStyleAttributes &
+	type AstroStyleAttributes = import('./dist/types/public/elements.js').AstroStyleAttributes &
 		AstroDefineVarsAttribute;
+	type AstroSlotAttributes = import('./dist/types/public/elements.js').AstroSlotAttributes;
 
 	// This is an unfortunate use of `any`, but unfortunately we can't make a type that works for every framework
 	// without importing every single framework's types (which comes with its own set of problems).
@@ -498,6 +493,15 @@ declare namespace astroHTML.JSX {
 		KebabCSSDOMProperties & DOMCSSProperties & AllCSSProperties
 	>;
 
+	interface CSSProperties extends StyleObject {
+		/**
+		 * Extend namespace to add properties or an index signature of your own.
+		 *
+		 * For more information, visit:
+		 * https://docs.astro.build/en/guides/typescript/#built-in-html-attributes
+		 */
+	}
+
 	interface HTMLAttributes extends AriaAttributes, DOMAttributes, AstroBuiltinAttributes {
 		// Standard HTML Attributes
 		accesskey?: string | undefined | null;
@@ -517,6 +521,7 @@ declare namespace astroHTML.JSX {
 			| 'send'
 			| undefined
 			| null;
+		exportparts?: string | undefined | null;
 		hidden?: boolean | string | undefined | null;
 		id?: string | undefined | null;
 		inert?: boolean | string | undefined | null;
@@ -532,18 +537,23 @@ declare namespace astroHTML.JSX {
 			| undefined
 			| null;
 		is?: string | undefined | null;
+
+		// Microdata API
 		itemid?: string | undefined | null;
 		itemprop?: string | undefined | null;
 		itemref?: string | undefined | null;
 		itemscope?: boolean | string | undefined | null;
 		itemtype?: string | undefined | null;
+
 		lang?: string | undefined | null;
+		part?: string | undefined | null;
+		popover?: boolean | string | undefined | null;
 		slot?: string | undefined | null;
 		spellcheck?: 'true' | 'false' | boolean | undefined | null;
-		style?: string | StyleObject | undefined | null;
+		style?: string | CSSProperties | undefined | null;
 		tabindex?: number | string | undefined | null;
 		title?: string | undefined | null;
-		translate?: 'yes' | 'no' | undefined | null;
+		translate?: 'yes' | 'no' | '' | undefined | null;
 
 		// <command>, <menuitem>
 		radiogroup?: string | undefined | null;
@@ -568,6 +578,9 @@ declare namespace astroHTML.JSX {
 		results?: number | string | undefined | null;
 		security?: string | undefined | null;
 		unselectable?: 'on' | 'off' | undefined | null; // Internet Explorer
+
+		// Allow data- attribute
+		[key: `data-${string}`]: any;
 	}
 
 	type HTMLAttributeReferrerPolicy =
@@ -588,6 +601,7 @@ declare namespace astroHTML.JSX {
 		href?: string | URL | undefined | null;
 		hreflang?: string | undefined | null;
 		media?: string | undefined | null;
+		name?: string | undefined | null;
 		ping?: string | undefined | null;
 		rel?: string | undefined | null;
 		target?: HTMLAttributeAnchorTarget | undefined | null;
@@ -620,6 +634,7 @@ declare namespace astroHTML.JSX {
 	}
 
 	interface ButtonHTMLAttributes extends HTMLAttributes {
+		autocomplete?: string | undefined | null;
 		disabled?: boolean | string | undefined | null;
 		form?: string | undefined | null;
 		formaction?: string | undefined | null;
@@ -630,6 +645,8 @@ declare namespace astroHTML.JSX {
 		name?: string | undefined | null;
 		type?: 'submit' | 'reset' | 'button' | undefined | null;
 		value?: string | string[] | number | undefined | null;
+		popovertarget?: string | undefined | null;
+		popovertargetaction?: 'hide' | 'show' | 'toggle' | undefined | null;
 	}
 
 	interface CanvasHTMLAttributes extends HTMLAttributes {
@@ -652,6 +669,7 @@ declare namespace astroHTML.JSX {
 
 	interface DetailsHTMLAttributes extends HTMLAttributes {
 		open?: boolean | string | undefined | null;
+		name?: string | undefined | null;
 	}
 
 	interface DelHTMLAttributes extends HTMLAttributes {
@@ -661,6 +679,7 @@ declare namespace astroHTML.JSX {
 
 	interface DialogHTMLAttributes extends HTMLAttributes {
 		open?: boolean | string | undefined | null;
+		closedby?: 'none' | 'closerequest' | 'any' | undefined | null;
 	}
 
 	interface EmbedHTMLAttributes extends HTMLAttributes {
@@ -794,6 +813,8 @@ declare namespace astroHTML.JSX {
 		type?: HTMLInputTypeAttribute | undefined | null;
 		value?: string | string[] | number | undefined | null;
 		width?: number | string | undefined | null;
+		popovertarget?: string | undefined | null;
+		popovertargetaction?: 'hide' | 'show' | 'toggle' | undefined | null;
 	}
 
 	interface KeygenHTMLAttributes extends HTMLAttributes {
@@ -816,10 +837,12 @@ declare namespace astroHTML.JSX {
 
 	interface LinkHTMLAttributes extends HTMLAttributes {
 		as?: string | undefined | null;
+		blocking?: 'render' | undefined | null;
 		crossorigin?: boolean | string | undefined | null;
+		disabled?: boolean | undefined | null;
+		fetchpriority?: 'auto' | 'high' | 'low' | undefined | null;
 		href?: string | URL | undefined | null;
 		hreflang?: string | undefined | null;
-		fetchpriority?: 'auto' | 'high' | 'low' | undefined | null;
 		integrity?: string | undefined | null;
 		media?: string | undefined | null;
 		imagesrcset?: string | undefined | null;
@@ -850,6 +873,8 @@ declare namespace astroHTML.JSX {
 		playsinline?: boolean | string | undefined | null;
 		preload?: string | undefined | null;
 		src?: string | undefined | null;
+		// https://www.w3.org/TR/remote-playback/#the-disableremoteplayback-attribute
+		disableRemotePlayback?: boolean | string | undefined | null;
 	}
 
 	interface MetaHTMLAttributes extends HTMLAttributes {
@@ -1324,6 +1349,9 @@ declare namespace astroHTML.JSX {
 		yChannelSelector?: string | undefined | null;
 		z?: number | string | undefined | null;
 		zoomAndPan?: string | undefined | null;
+
+		// Allow data- attribute
+		[key: `data-${string}`]: any;
 	}
 
 	interface DefinedIntrinsicElements {
@@ -1415,7 +1443,7 @@ declare namespace astroHTML.JSX {
 		ruby: HTMLAttributes;
 		s: HTMLAttributes;
 		samp: HTMLAttributes;
-		slot: SlotHTMLAttributes;
+		slot: SlotHTMLAttributes & AstroSlotAttributes;
 		script: ScriptHTMLAttributes & AstroScriptAttributes;
 		section: HTMLAttributes;
 		select: SelectHTMLAttributes;
