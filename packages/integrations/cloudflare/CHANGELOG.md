@@ -1,5 +1,31 @@
 # @astrojs/cloudflare
 
+## 12.3.1
+
+### Patch Changes
+
+- [#13505](https://github.com/withastro/astro/pull/13505) [`a98ae5b`](https://github.com/withastro/astro/commit/a98ae5b8f5c33900379012e9e253a755c0a8927e) Thanks [@ematipico](https://github.com/ematipico)! - Updates the dependency `vite` to the latest.
+
+- Updated dependencies []:
+  - @astrojs/underscore-redirects@0.6.0
+
+## 12.3.0
+
+### Minor Changes
+
+- [#13444](https://github.com/withastro/astro/pull/13444) [`9721f4a`](https://github.com/withastro/astro/commit/9721f4a69f0fca389f146a5b8051cc17a34cdb0f) Thanks [@florian-lefebvre](https://github.com/florian-lefebvre)! - Adds global `astro:env` support
+
+  Cloudflare workers [now support importing `env` in the global scope](https://developers.cloudflare.com/changelog/2025-03-17-importable-env/). Until now, calling `astro:env` APIs had to be done within request scope or the values were `undefined`.
+
+  With this release, they can be called anywhere server-side, like any other official adapter.
+
+### Patch Changes
+
+- [#13463](https://github.com/withastro/astro/pull/13463) [`d5ad591`](https://github.com/withastro/astro/commit/d5ad591230918db302edc89c1a98436c16a4e0d2) Thanks [@ascorbic](https://github.com/ascorbic)! - Fixes a bug that caused builds to fail when a base directory is configured
+
+- Updated dependencies []:
+  - @astrojs/underscore-redirects@0.6.0
+
 ## 12.2.4
 
 ### Patch Changes
