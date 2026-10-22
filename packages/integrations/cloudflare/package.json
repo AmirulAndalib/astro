@@ -49,7 +49,7 @@
     "@astrojs/underscore-redirects": "workspace:*",
     "@cloudflare/vite-plugin": "^1.53.0",
     "piccolore": "^0.1.3",
-    "vite": "^8.0.13"
+    "vite": "^8.3.3"
   },
   "peerDependencies": {
     "astro": "^7.2.0",
